@@ -628,7 +628,7 @@ function Categories() {
       ${CATS.map((c) => html`<button key=${c.id} className="cat-cell" onClick=${() => nav.push('plp', { cat: c.id })}>
         <span className="cat-cell-ic" style=${{ background: c.bg }} aria-hidden="true"><${Emo} k=${c.icon} /></span>
         <span className="cat-cell-name">${c.name}</span>
-        <span className="cat-cell-n">${PRODUCTS.filter((p) => p.cat === c.id).length} items</span>
+        <span className="cat-cell-n">${PRODUCTS.filter((p) => p.cat === c.id).length} item${PRODUCTS.filter((p) => p.cat === c.id).length === 1 ? "" : "s"}</span>
       </button>`)}
     </div>` : html`<div className="field-list pad-x">
       ${fieldsSorted.map((f) => {
@@ -1114,9 +1114,10 @@ function Cart() {
         </div>
         <div className="pad-x"><${FreeDelivery} b=${cart.bill} /></div>
         ${also.length > 0 && html`<section className="sec"><${SecHead} title="You may also like" /><div className="rail">${also.map((p) => html`<${MiniCard} key=${p.id} p=${p} />`)}</div></section>`}
-        <div className="pad-x"><${BillCard} b=${cart.bill} /></div>
+        <div className="pad-x in-flow-bill"><${BillCard} b=${cart.bill} /></div>
         <div className="spacer"></div>`}
     </div>
+    ${cart.count > 0 && html`<aside className="desk-aside" aria-hidden="true"><${BillCard} b=${cart.bill} /></aside>`}
     ${cart.count > 0 && html`<div className="bottom-bar col">
       <div className="sum-bar">
         <div className="sum-cell"><span className="sum-ic">${I('cart')}<span className="badge">${cart.count}</span></span><div><b>${cart.count} item${cart.count === 1 ? '' : 's'}</b><small>Total items</small></div></div>
@@ -1184,13 +1185,19 @@ function Checkout() {
           <label className=${'radio-card' + (S.pay === 'cod' ? ' on' : '')}><input type="radio" name="pay" checked=${S.pay === 'cod'} onChange=${() => act((s) => { s.pay = 'cod'; })} /><span className="rc-ic">${I('cash')}</span><span className="rc-txt"><b>Pay on delivery</b><small>Cash or UPI at your door. No extra fee.</small></span></label>
         </div>
       </section>
-      <section className="co-sec">
+      <section className="co-sec in-flow-bill">
         <button className="acc-head" aria-expanded=${items} onClick=${() => setItems(!items)}><span>${cart.count} items in this order</span>${I(items ? 'minus' : 'plus')}</button>
         ${items && html`<ul className="co-items">${cart.lines.map((l) => html`<li key=${l.key}><${Art} art=${l.p.art} bg=${l.p.bg} /><span>${l.p.name}<small>${l.v.label} × ${l.qty}</small></span><b>${inr(l.price * l.qty)}</b></li>`)}</ul>`}
       </section>
-      <${BillCard} b=${cart.bill} />
+      <div className="in-flow-bill"><${BillCard} b=${cart.bill} /></div>
       <div className="spacer"></div>
     </div>
+    <aside className="desk-aside" aria-hidden="true">
+      <section className="card co-summary"><h3>${cart.count} items in this order</h3>
+        <ul className="co-items">${cart.lines.map((l) => html`<li key=${l.key}><${Art} art=${l.p.art} bg=${l.p.bg} /><span>${l.p.name}<small>${l.v.label} × ${l.qty}</small></span><b>${inr(l.price * l.qty)}</b></li>`)}</ul>
+      </section>
+      <${BillCard} b=${cart.bill} />
+    </aside>
     <div className="bottom-bar">
       <div className="pay-total"><small>To pay</small><b>${inr(cart.bill.total)}</b></div>
       <button className="btn primary grow" onClick=${pay}>${I('lock')} ${S.pay === 'cod' ? 'Place order' : `Pay ${inr(cart.bill.total)}`}</button>
@@ -1337,7 +1344,7 @@ function TrackMap({ o, st, now, compact }) {
   const cx = pad.l + availW / 2, cy = pad.t + availH / 2; // visible centre in px
   const fit = () => {
     const [x0, y0, x1, y1] = MAP.frame;
-    const s = Math.min(availW / (x1 - x0), availH / (y1 - y0));
+    const s = Math.min(availW / (x1 - x0), availH / (y1 - y0), compact ? 9 : 1.5);
     return [(x0 + x1) / 2 - cx / s, (y0 + y1) / 2 - cy / s, size.w / s, size.h / s];
   };
   const [vb, setVb] = useState(null); // null = fit the whole route

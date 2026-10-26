@@ -967,6 +967,7 @@ h1, h2, h3 { text-wrap: balance; }
    Tablet (600px+): wider grids, sheets become centred dialogs, reels play in a phone-shaped column.
    Desktop (1024px+): navigation moves to a left sidebar, screens sit in centred columns, product page goes two-column. */
 .bnav-brand { display: none; }
+.desk-aside { display: none; }
 .tab-screen { --col: 1180px; }
 .tab-orders, .tab-profile { --col: 760px; }
 .route-login, .route-otp { --col: 480px; }
@@ -1066,6 +1067,83 @@ h1, h2, h3 { text-wrap: balance; }
   .grid2 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .cat-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
   .field-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ---------- Desktop polish: alignment and spacing ---------- */
+/* Horizontal rows snap to the same 16px edge as the headings above them (all sizes) */
+.rail, .rail2, .scroll-x { scroll-padding-inline: 16px; }
+
+@media (min-width: 1024px) {
+  .device { --sb: 16px; }
+
+  /* Lavender headers become cards on the same edges as the content */
+  .home-head, .lav-head { margin: 16px 16px 0; border-radius: var(--r-xl); }
+  .home-head { padding: 20px 0 16px; }
+  .home-top { padding: 0 20px; }
+  .loc { display: inline-flex; width: auto; max-width: calc(100% - 40px); margin: 12px 20px 0; }
+  .eta-pill { margin-left: 10px; }
+  .search-bar { margin: 14px 20px 0; }
+  .quick-row { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); padding: 14px 12px 0; overflow: visible; }
+  .quick { width: auto; padding: 6px 0; }
+  .lav-head { padding: 18px 20px; }
+  .profile-head { padding: 20px; }
+
+  /* Section rhythm */
+  .banner { margin-top: 24px; }
+  .sec { margin-top: 36px; }
+  .sec-head { margin-bottom: 14px; }
+  .kit-card { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; margin: 12px 16px 16px; padding: 16px 20px; }
+  .kit-card .btn { justify-self: end; }
+
+  /* Rows wrap into grids instead of cutting cards off */
+  .rail:has(> .pcard) { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 12px; overflow: visible; }
+  .rail:has(> .pcard) .pcard { width: auto; }
+  .rail2 { gap: 12px; }
+  .rail.cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; overflow: visible; }
+  .rail.cats .cat-tile { width: auto; height: 100px; }
+  .rail:has(> .reel-thumb) { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; overflow: visible; }
+  .rail:has(> .reel-thumb) .reel-thumb { width: auto; }
+  .grid2 { gap: 16px; }
+
+  /* Action panels float over the right-hand column */
+  .route-pdp .bottom-bar { width: calc((100% - 64px) / 2.1); }
+  .route-pdp .stack-body { padding-bottom: 120px; }
+
+  /* Cart and checkout: list on the left; bill and pay button stacked on the right */
+  .route-cart, .route-checkout { --col: 1120px; }
+  .screen-col:has(> .desk-aside) { display: grid; grid-template-columns: minmax(0, 1fr) 360px; grid-template-rows: auto auto minmax(0, 1fr); column-gap: 28px; padding: 0 16px; }
+  .screen-col:has(> .desk-aside) > :first-child { grid-column: 1 / -1; margin-inline: 0; padding-inline: 0; }
+  .screen-col:has(> .desk-aside) > .lav-head { padding-inline: 20px; }
+  .screen-col:has(> .desk-aside) > .stack-body { grid-column: 1; grid-row: 2 / 4; min-height: 0; padding-inline: 0; }
+  .screen-col:has(> .desk-aside) > .stack-body > .pad-x, .screen-col:has(> .desk-aside) > .stack-body > .confirm { padding-inline: 0; margin-inline: 0; }
+  .screen-col:has(> .desk-aside) > .stack-body > .sec .sec-head, .screen-col:has(> .desk-aside) > .stack-body > .sec .rail { padding-inline: 0; }
+  .screen-col:has(> .desk-aside) > .desk-aside { display: grid; gap: 12px; grid-column: 2; grid-row: 2; padding-top: 14px; }
+  .screen-col:has(> .desk-aside) > .bottom-bar { grid-column: 2; grid-row: 3; align-self: start; margin-top: 12px; border: 1px solid var(--line); border-radius: var(--r-l); box-shadow: 0 12px 32px rgba(25,23,71,.10); }
+  .screen-col:has(> .desk-aside) .in-flow-bill { display: none; }
+  .desk-aside .bill { margin-top: 0; }
+  .co-summary { display: grid; gap: 10px; }
+  .co-summary h3 { font-size: 14.5px; }
+  .co-summary .co-items { margin: 0; max-height: 236px; overflow-y: auto; }
+  .route-pdp .bottom-bar { position: absolute; right: 16px; bottom: 16px; z-index: 5; border: 1px solid var(--line); border-radius: var(--r-l); box-shadow: 0 12px 32px rgba(25,23,71,.12); }
+
+  /* Order tracking: map left, details right */
+  .route-order { --col: 1180px; }
+  .route-order > .screen-col:not(:has(.track-hero)) { max-width: 720px; }
+  .route-order .screen-col:has(.track-hero) { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(360px, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .route-order .track-hero { height: auto; margin: 16px 0 16px 16px; border-radius: var(--r-xl); overflow: hidden; border: 1px solid var(--line); }
+  .route-order .track-sheet { margin-top: 0; padding-top: 16px; border-radius: 0; box-shadow: none; background: transparent; }
+  .route-order .track-sheet::before { display: none; }
+  .route-order .map-live, .route-order .map-ctrl { bottom: 16px; }
+
+  /* Login and OTP: a centred card */
+  .route-login, .route-otp { background: radial-gradient(circle at 18% 12%, rgba(168,85,247,.14), transparent 42%), radial-gradient(circle at 82% 88%, rgba(139,173,235,.22), transparent 46%), var(--bg); }
+  .route-login > .auth, .route-otp > .auth { height: auto; margin: max(32px, 9vh) auto 32px; padding: 8px 24px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 28px; box-shadow: 0 24px 60px rgba(25,23,71,.10); }
+  .auth-top { min-height: 0; padding: 20px 4px 0; }
+  .auth-main, .auth.kb .auth-main { flex: none; justify-content: flex-start; padding: 28px 0 8px; }
+  .brandmark { font-size: 22px; padding: 0 2px; margin-bottom: 16px; }
+  .auth-title { font-size: 26px; font-weight: 600; letter-spacing: -.02em; padding: 0 2px; }
+  .auth-sub, .otp-label, .otp-resend { padding-inline: 2px; }
+  .terms { padding: 12px 0 8px; }
 }
 </style>
 
