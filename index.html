@@ -1,10 +1,13 @@
+<meta charset="utf-8">
 <title>quickart</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
-/* Layout: a single phone-sized app. On wide screens it sits centred on a dark canvas; on phones it fills the screen.
-   The app commits to the light look from the source screens, so every colour is set explicitly. */
+/* Layout: the app fills the window at every size. Phones get the single-column app with bottom navigation,
+   tablets get wider grids and centred dialogs, desktops get a left sidebar and centred content columns
+   (see "Responsive layout" at the end). The app commits to the light look from the source screens, so every colour is set explicitly. */
 :root {
   color-scheme: light;
   /* QUICKART brand palette (from the official logo) */
@@ -49,7 +52,7 @@
 }
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
-body { margin: 0; background: var(--canvas); color: var(--ink); font-family: var(--font); font-size: 14px; line-height: 1.4; -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 14px; line-height: 1.4; -webkit-font-smoothing: antialiased; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
 button:disabled { cursor: not-allowed; }
 input { font: inherit; color: inherit; }
@@ -59,20 +62,10 @@ h1, h2, h3 { text-wrap: balance; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; opacity: 0; }
 
 /* ---------- Stage and device ---------- */
-.stage { min-height: 100%; display: flex; align-items: center; justify-content: center; gap: 56px; padding-block: 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.device { position: relative; flex: none; width: 390px; height: min(844px, calc(100vh - 48px)); min-height: 600px; border-radius: 44px; overflow: hidden; background: var(--bg); box-shadow: 0 0 0 10px #1B1A1D, 0 40px 90px rgba(0,0,0,.45); isolation: isolate; }
+/* --side is the desktop sidebar width; --col is the widest a screen's content column may grow. */
+.stage { height: 100%; }
+.device { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--bg); isolation: isolate; --sb: max(6px, env(safe-area-inset-top, 0px)); --hb: env(safe-area-inset-bottom, 0px); --side: 0px; --col: 100%; }
 .device.auth-top-bg { background: var(--bg-soft); }
-.sbar { position: absolute; inset: 0 0 auto; height: var(--sb); z-index: 95; pointer-events: none; display: flex; justify-content: space-between; align-items: center; padding: 6px 30px 0; font-size: 14px; color: var(--ink); }
-.sbar-icons { display: flex; gap: 5px; align-items: center; }
-.sbar-icons i { display: block; width: 16px; height: 10px; border-radius: 3px; background: currentColor; opacity: .85; }
-.sbar-icons i:first-child { width: 14px; clip-path: polygon(0 100%, 100% 0, 100% 100%); border-radius: 1px; }
-.sbar-icons i:last-child { width: 24px; border-radius: 3px; }
-.device.dark-top .sbar { color: #fff; }
-@media (max-width: 520px) {
-  .stage { display: block; padding: 0; height: 100%; min-height: 0; }
-  .device { width: 100%; height: 100%; min-height: 0; border-radius: 0; box-shadow: none; --sb: 6px; --hb: 0px; }
-  .sbar { display: none; }
-}
 
 /* ---------- Layers ---------- */
 .tabs-layer { position: absolute; inset: 0; }
@@ -963,6 +956,117 @@ h1, h2, h3 { text-wrap: balance; }
 .star-btn:active { transform: scale(.88); }
 .track-card .track-map.compact { margin-bottom: 2px; }
 @media (prefers-reduced-motion: reduce) { .map-rider { transition: none; } }
+
+/* Product photo always fits whole inside the hero, whatever its shape */
+.pdp-hero > .pdp-art { position: absolute; inset: 5% 4%; width: auto; height: auto; }
+.pdp-hero > .pdp-art.photo { display: block; }
+.pdp-hero > .pdp-art.photo img { position: absolute; inset: 0; object-fit: contain; }
+
+/* ---------- Responsive layout ---------- */
+/* Phone (under 600px): the single-column app above, unchanged.
+   Tablet (600px+): wider grids, sheets become centred dialogs, reels play in a phone-shaped column.
+   Desktop (1024px+): navigation moves to a left sidebar, screens sit in centred columns, product page goes two-column. */
+.bnav-brand { display: none; }
+.tab-screen { --col: 1180px; }
+.tab-orders, .tab-profile { --col: 760px; }
+.route-login, .route-otp { --col: 480px; }
+.route-fields { --col: 760px; }
+.route-cart, .route-checkout, .route-paying, .route-confirm, .route-order, .route-addresses, .route-help, .route-pricing { --col: 720px; }
+.route-search { --col: 960px; }
+.route-pdp { --col: 1100px; }
+.route-plp, .route-saved { --col: 1180px; }
+.route-reels { --col: 100%; }
+.tab-screen > .scroll { padding-inline: max(0px, calc((100% - var(--col)) / 2)); }
+.stack-screen > * { max-width: var(--col); margin-inline: auto; }
+
+@media (min-width: 600px) {
+  .stack-screen > .screen-col { position: relative; }
+  .grid2 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .cat-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .field-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .vid-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .rail .pcard { width: 160px; }
+  .rail2 { grid-auto-columns: 150px; }
+  .reel-thumb { width: 132px; }
+  .quick { width: 72px; }
+  .pdp-hero { height: 380px; }
+  .seg { max-width: 440px; }
+  .banner { min-height: 160px; padding: 22px; }
+  .banner h2 { font-size: 20px; }
+  .banner-txt { max-width: min(58%, 420px); }
+  .banner-art { width: 230px; height: 176px; }
+  .banner-art .art { width: 136px; height: 136px; }
+  .bnav { padding-inline: max(0px, calc((100% - 640px) / 2)); }
+  .cartbar { width: calc(100% - 24px); max-width: 560px; margin: 16px auto 0; }
+  .cartbar.in-stack { margin: 0 auto calc(var(--hb) + 10px); }
+  .toast { left: var(--side); right: 0; margin-inline: auto; width: min(440px, calc(100% - var(--side) - 24px)); }
+
+  /* Sheets become centred dialogs */
+  .sheet-wrap { align-items: center; justify-content: center; padding: 24px; }
+  .sheet { width: min(100%, 480px); max-height: min(86%, 760px); border-radius: var(--r-xl); padding-bottom: 0; box-shadow: 0 24px 60px rgba(25,23,71,.28); animation: dialog-in .22s cubic-bezier(.2,.8,.2,1); }
+  .sheet.tall { width: min(100%, 560px); max-height: min(90%, 820px); }
+  .sheet-grab { visibility: hidden; }
+  @keyframes dialog-in { from { transform: translateY(16px) scale(.97); opacity: 0; } }
+
+  /* Reels keep a phone-shaped frame on wide screens */
+  .explore .feed, .explore-top { left: 0; right: 0; margin-inline: auto; width: min(100%, max(360px, 56vh)); }
+}
+
+@media (min-width: 768px) {
+  .field-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 900px) {
+  .grid2 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .cat-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .device { --side: 248px; --nav-h: 0px; }
+
+  /* Sidebar navigation */
+  .bnav { top: 0; right: auto; width: var(--side); height: auto; display: flex; flex-direction: column; gap: 4px; padding: calc(var(--sb) + 18px) 14px 20px; border-top: 0; border-right: 1px solid var(--line); background: var(--card); }
+  .bnav-brand { display: block; padding: 0 12px 22px; font-size: 24px; font-weight: 800; letter-spacing: -.02em; background: linear-gradient(90deg, var(--purple) 0%, var(--grad-start) 55%, var(--pink) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .bnav-item { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 12px 0 6px; border-radius: var(--r-m); font-size: 14.5px; text-align: left; }
+  .bnav-ic { width: 36px; height: 36px; }
+  .bnav-item.on { background: var(--lav-100); }
+  .bnav-item.on .bnav-ic, .bnav-item.is-explore.on .bnav-ic { background: transparent; }
+  .bnav.dark { background: var(--night); border-right-color: rgba(255,255,255,.08); }
+  .bnav.dark .bnav-item.on { background: rgba(255,255,255,.12); }
+  .bnav.dark .bnav-item.on .bnav-ic { background: transparent; }
+  .dot-badge { top: -2px; right: -2px; }
+  @media (hover: hover) {
+    .bnav-item:not(.on):hover { background: var(--surface); }
+    .bnav.dark .bnav-item:not(.on):hover { background: rgba(255,255,255,.06); }
+  }
+  .bnav-item:active:not(:disabled) { transform: scale(.98); }
+  .tab-screen, .tabs-layer ~ .stack-screen { left: var(--side); }
+
+  .vid-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .cartbar { bottom: 16px; }
+  .rail .pcard { width: 180px; }
+  .rail2 { grid-auto-flow: row; grid-template-rows: none; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); overflow: visible; }
+
+  /* Product page: gallery left, details right */
+  .route-pdp .stack-body { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: 32px; align-content: start; align-items: start; padding: 0 16px; }
+  .route-pdp .pdp-hero { grid-column: 1; grid-row: 1; margin: calc(var(--sb) + 12px) 0 0; height: min(520px, 62vh); }
+  .route-pdp .thumbs { grid-column: 1; grid-row: 2; padding: 0; }
+  .route-pdp .pdp-body { grid-column: 2; grid-row: 1 / span 3; padding-top: calc(var(--sb) + 20px); padding-inline: 0; }
+  .route-pdp .stack-body > .sec, .route-pdp .stack-body > .spacer { grid-column: 1 / -1; }
+  .route-pdp .stack-body > .sec { margin-inline: -16px; }
+}
+
+/* With a mouse and keyboard, typing replaces the on-screen number pad */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .keypad { display: none; }
+  .auth.kb .auth-main { justify-content: center; padding-top: 0; }
+}
+
+@media (min-width: 1200px) {
+  .grid2 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .cat-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .field-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 </style>
 
 <div id="root"></div>

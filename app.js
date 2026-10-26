@@ -1770,11 +1770,23 @@ const SCREENS = { login: Login, otp: Otp, fields: FieldsScreen, search: Search, 
 let _rk = 0;
 function mkRoute(name, params) { return { name, params: params || {}, k: ++_rk }; }
 
-function BottomNav() {
+function useWide() {
+  const q = '(min-width: 1024px)';
+  const [wide, setWide] = useState(() => !!(window.matchMedia && matchMedia(q).matches));
+  useEffect(() => {
+    if (!window.matchMedia) return;
+    const m = matchMedia(q), f = () => setWide(m.matches);
+    m.addEventListener('change', f);
+    return () => m.removeEventListener('change', f);
+  }, []);
+  return wide;
+}
+function BottomNav({ hidden }) {
   const { tab, nav, S } = useApp();
   const now = useNow(5000);
   const live = S.orders.filter((o) => !['delivered', 'cancelled'].includes(orderStage(o, now).key)).length;
-  return html`<nav className=${'bnav' + (tab === 'explore' ? ' dark' : '')} aria-label="Main">
+  return html`<nav className=${'bnav' + (tab === 'explore' ? ' dark' : '')} aria-label="Main" aria-hidden=${hidden || undefined}>
+    <span className="bnav-brand" aria-hidden="true"><span>quick</span>art</span>
     ${TABS.map((t) => html`<button key=${t.id} className=${'bnav-item' + (tab === t.id ? ' on' : '') + (t.id === 'explore' ? ' is-explore' : '')} aria-current=${tab === t.id ? 'page' : undefined} onClick=${() => {
       if (tab === t.id) { const sc = document.querySelector('.tab-screen:not(.off) .scroll'); if (sc) sc.scrollTo({ top: 0, behavior: 'smooth' }); }
       nav.tab(t.id);
@@ -1791,6 +1803,7 @@ function Toast({ t, onDone }) {
 
 function App() {
   const [S, setS] = useState(loadState);
+  const wide = useWide();
   const Sref = useRef(S);
   Sref.current = S;
   const act = useCallback((fn) => setS((s) => { const n = JSON.parse(JSON.stringify(s)); fn(n); return n; }), []);
@@ -1966,14 +1979,13 @@ function App() {
   return html`<${Ctx.Provider} value=${app}>
     <div className="stage">
       <div ref=${deviceRef} className=${'device' + (darkTop ? ' dark-top' : '') + (lightAuth ? ' auth-top-bg' : '')}>
-        <div className="sbar" aria-hidden="true"><b>9:41</b><span className="sbar-icons"><i></i><i></i><i></i></span></div>
-        ${S.user.onboarded && html`<div className="tabs-layer" aria-hidden=${stack.length > 0}>
-          ${TABS.map((t) => html`<section key=${t.id} className=${'tab-screen' + (tab === t.id ? '' : ' off')} aria-label=${t.label}><${t.C} active=${tab === t.id && stack.length === 0} /></section>`)}
-          <${BottomNav} />
+        ${S.user.onboarded && html`<div className="tabs-layer">
+          ${TABS.map((t) => html`<section key=${t.id} className=${'tab-screen tab-' + t.id + (tab === t.id ? '' : ' off')} aria-label=${t.label} aria-hidden=${stack.length > 0}><${t.C} active=${tab === t.id && stack.length === 0} /></section>`)}
+          <${BottomNav} hidden=${stack.length > 0 && !wide} />
         </div>`}
         ${stack.map((r, i) => {
           const C = SCREENS[r.name];
-          return html`<div key=${r.k} className=${'stack-screen' + (r.name === 'reels' ? ' dark-screen' : '')} aria-hidden=${i < stack.length - 1}><${C} params=${r.params} /></div>`;
+          return html`<div key=${r.k} className=${'stack-screen route-' + r.name + (r.name === 'reels' ? ' dark-screen' : '')} aria-hidden=${i < stack.length - 1}><${C} params=${r.params} /></div>`;
         })}
         ${sheet && sheet.type === 'address' && html`<${AddressSheet} onClose=${() => setSheet(null)} />`}
         ${sheet && sheet.type === 'share' && html`<${ShareSheet} rid=${sheet.rid} onClose=${() => setSheet(null)} />`}
