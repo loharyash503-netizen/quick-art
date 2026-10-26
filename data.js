@@ -336,8 +336,8 @@ PRODUCTS.forEach((p) => {
   p.fields = FIELDS.filter((f) => f.kit.includes(p.id)).map((f) => f.id);
   p.bg = (CATS.find((c) => c.id === p.cat) || {}).bg || '#F4F2F7';
 });
-// Studio product photos (AI-generated, unbranded). Products without one fall back to the drawn illustration.
-const PHOTOS = new Set(Array.from({ length: 25 }, (_, i) => 'p' + (i + 1)));
+// Studio product photos (AI-generated, unbranded) for all 37 products. A product without a photo falls back to its drawn illustration.
+const PHOTOS = new Set(Array.from({ length: 37 }, (_, i) => 'p' + (i + 1)));
 PRODUCTS.forEach((p) => { if (PHOTOS.has(p.id)) p.art = { ...p.art, photo: 'img/' + p.id + '.jpg' }; });
 const BRANDS = [...new Set(PRODUCTS.map((p) => p.brand))].sort();
 
