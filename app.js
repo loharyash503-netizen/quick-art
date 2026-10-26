@@ -165,7 +165,7 @@ function I(name, opts = {}) {
 }
 function Art({ art, bg, cls, zoom }) {
   if (art.photo) {
-    return html`<span className=${'art photo ' + (cls || '') + (zoom ? ' zoom' : '')} style=${bg ? { background: bg } : null}><${Photo} src=${art.photo} /></span>`;
+    return html`<span className=${'art photo ' + (cls || '') + (zoom ? ' zoom' : '')} style=${bg ? { background: bg } : null}><${Photo} src=${asset(art.photo)} /></span>`;
   }
   return html`<span className=${'art ' + (cls || '') + (zoom ? ' zoom' : '')} style=${bg ? { background: bg } : null} dangerouslySetInnerHTML=${{ __html: artSvg(art) }}></span>`;
 }
@@ -177,7 +177,7 @@ function Photo({ src }) {
 }
 /* 3D icon (Microsoft Fluent Emoji, MIT) */
 function Emo({ k, cls }) {
-  return html`<img className=${'emo ' + (cls || '')} src=${'icons/' + k + '.png'} alt="" draggable="false" />`;
+  return html`<img className=${'emo ' + (cls || '')} src=${asset('icons/' + k + '.png')} alt="" draggable="false" />`;
 }
 /* Bold the part of a suggestion that matches what was typed */
 function Hl({ text, q }) {
@@ -1856,7 +1856,7 @@ function App() {
       const r = tgt.getBoundingClientRect();
       const dot = document.createElement('div');
       dot.className = 'fly';
-      dot.innerHTML = art.photo ? `<img src="${art.photo}" alt="">` : artSvg(art);
+      dot.innerHTML = art.photo ? `<img src="${asset(art.photo)}" alt="">` : artSvg(art);
       dev.appendChild(dot);
       const sx = pt.x - d.left - 24, sy = pt.y - d.top - 24;
       const ex = r.left - d.left + r.width / 2 - 24, ey = r.top - d.top + r.height / 2 - 24;
@@ -1965,7 +1965,6 @@ function App() {
 
   return html`<${Ctx.Provider} value=${app}>
     <div className="stage">
-      <${SidePanel} />
       <div ref=${deviceRef} className=${'device' + (darkTop ? ' dark-top' : '') + (lightAuth ? ' auth-top-bg' : '')}>
         <div className="sbar" aria-hidden="true"><b>9:41</b><span className="sbar-icons"><i></i><i></i><i></i></span></div>
         ${S.user.onboarded && html`<div className="tabs-layer" aria-hidden=${stack.length > 0}>
@@ -1983,28 +1982,6 @@ function App() {
       </div>
     </div>
   <//>`;
-}
-
-/* Presenter panel beside the phone on wide screens: jump into each research flow. */
-function SidePanel() {
-  const { S, act, nav, resetAll, toast } = useApp();
-  const ensureUser = () => {
-    if (!S.user.onboarded) act((s) => { s.user.onboarded = true; s.user.fields = s.user.fields.length ? s.user.fields : ['fine', 'uiux']; });
-  };
-  const flows = [
-    ['A', 'Urgent purchase', 'Home → Search → Product → Cart → Checkout', () => { ensureUser(); nav.go('home', [['search', {}]]); }],
-    ['B', 'Reel discovery', 'Explore → Watch → Shop sheet → Cart', () => { ensureUser(); nav.tab('explore'); }],
-    ['C', 'Personalised', 'Onboarding → Pick field → Your kit', () => { act((s) => { s.user.onboarded = false; s.user.loggedIn = false; s.user.fields = []; }); nav.reset([['login', { mode: 'onboard' }]]); }],
-    ['D', 'Category browsing', 'Categories → Field or material → Filters', () => { ensureUser(); nav.tab('categories'); }],
-  ];
-  return html`<aside className="panel">
-    <p className="panel-brand"><span>quick</span>art</p>
-    <p className="panel-lead">Art and design supplies delivered in minutes, with demo videos and kits for your field.</p>
-    <h2>Try a flow</h2>
-    <ol className="flow-list">${flows.map(([k, t, d, fn]) => html`<li key=${k}><button onClick=${fn}><span className="flow-k">${k}</span><span><b>${t}</b><small>${d}</small></span></button></li>`)}</ol>
-    <button className="panel-reset" onClick=${resetAll}>${I('refresh')} Reset prototype</button>
-    <p className="panel-note">Prototype. Catalogue, prices, stock, creators, delivery times and payments are simulated. Nothing is charged or shipped. Icons: Lucide (ISC) and Microsoft Fluent Emoji (MIT).</p>
-  </aside>`;
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(html`<${App} />`);

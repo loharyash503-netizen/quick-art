@@ -1,6 +1,9 @@
 /* quickart prototype: sample catalogue, illustrations and icons.
    Everything here is prototype data: products, prices, stock, creators and delivery times are samples. */
 
+/* Image paths resolve to embedded data URIs from assets.js; falls back to the file path. */
+const asset = (p) => (window.QA_ASSETS && window.QA_ASSETS[p]) || p;
+
 /* ---------- Icons: Lucide v1.49 line icons (ISC licence), drawn with currentColor ---------- */
 const ICON_PATHS = {
   phone: '<path d=\"M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384\"/>',
