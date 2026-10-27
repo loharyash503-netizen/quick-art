@@ -1828,19 +1828,16 @@ function BottomNav({ hidden }) {
   const now = useNow(5000);
   const live = S.orders.filter((o) => !['delivered', 'cancelled'].includes(orderStage(o, now).key)).length;
   const idx = Math.max(0, TABS.findIndex((t) => t.id === tab));
-  const [taps, setTaps] = useState(0); // replays the tap ripple on every press
   return html`<nav className=${'bnav' + (tab === 'explore' ? ' dark' : '')} aria-label="Main" aria-hidden=${hidden || undefined} style=${{ '--idx': idx }}>
     <span className="bnav-brand" aria-hidden="true"><img className="bb-mark" src=${asset('brand/logo-mark.png')} alt="" /><img className="bb-word" src=${asset('brand/logo-wordmark.png')} alt="" /></span>
     <div className="bnav-track">
       <span className="bnav-blob" aria-hidden="true"></span>
       ${TABS.map((t) => html`<button key=${t.id} className=${'bnav-item' + (tab === t.id ? ' on' : '') + (t.id === 'explore' ? ' is-explore' : '')} aria-current=${tab === t.id ? 'page' : undefined} onClick=${() => {
         if (tab === t.id) { const sc = document.querySelector('.tab-screen:not(.off) .scroll'); if (sc) sc.scrollTo({ top: 0, behavior: 'smooth' }); }
-        setTaps((n) => n + 1);
         try { navigator.vibrate && navigator.vibrate(8); } catch (e) { /* not supported */ }
         nav.tab(t.id);
       }}>
-        <span className="bnav-ic">${I(t.icon)}${t.id === 'orders' && live > 0 && html`<span className="badge dot-badge" aria-label=${`${live} active`}>${live}</span>`}
-          ${tab === t.id && taps > 0 && html`<span key=${taps} className="bnav-ripple" aria-hidden="true"></span>`}</span>
+        <span className="bnav-ic">${I(t.icon)}${t.id === 'orders' && live > 0 && html`<span className="badge dot-badge" aria-label=${`${live} active`}>${live}</span>`}</span>
         <span className="bnav-label">${t.label}</span>
       </button>`)}
     </div>
