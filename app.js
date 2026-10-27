@@ -372,6 +372,24 @@ function Keypad({ onKey, onDel }) {
     <button type="button" className="key key-del" aria-label="Delete" onClick=${onDel}>${I('backspace')}</button>
   </div>`;
 }
+/* Animated Quick Art logo for the login screen. Tap the mark to replay. */
+function LoginHero() {
+  const [k, setK] = useState(0);
+  const mark = asset('brand/logo-mark.png');
+  const mask = `url(${mark})`;
+  return html`<div className="login-hero">
+    <button type="button" key=${k} className="lh-mark-wrap" aria-label="Quick Art logo. Tap to replay the animation" onClick=${() => setK(k + 1)}>
+      <span className="lh-splash" aria-hidden="true"></span>
+      <span className="lh-ring" aria-hidden="true"></span>
+      <span className="lh-float">
+        <img className="lh-mark" src=${mark} alt="" draggable="false" />
+        <span className="lh-sheen" style=${{ WebkitMaskImage: mask, maskImage: mask }} aria-hidden="true"></span>
+      </span>
+      <span className="lh-drops" aria-hidden="true"><i></i><i></i><i></i></span>
+    </button>
+    <img key=${'w' + k} className="lh-word" src=${asset('brand/logo-wordmark.png')} alt="Quick Art" draggable="false" />
+  </div>`;
+}
 function Login({ params }) {
   const { nav, act } = useApp();
   const mode = params.mode || 'onboard';
@@ -394,15 +412,19 @@ function Login({ params }) {
     } else nav.pop();
   };
   const type = (d) => { setErr(''); setPh((x) => (x + d).slice(0, 10)); };
-  return html`<div className=${'auth' + (kb ? ' kb' : '')}>
+  return html`<div className=${'auth login' + (kb ? ' kb' : '')}>
+    <div className="auth-blobs" aria-hidden="true"><i></i><i></i><i></i></div>
     <div className="auth-top">
       ${mode !== 'onboard' && html`<button className="round-btn dark" aria-label="Back" onClick=${nav.pop}>${I('back')}</button>`}
       <span></span>
       <button className="pill-dark" onClick=${skip}>${mode === 'onboard' ? 'Skip' : 'Not now'} ${I('chev')}</button>
     </div>
     <div className="auth-main" onClick=${(e) => { if (!e.target.closest('.phone-field')) setKb(false); }}>
-      <div className="brandmark" aria-hidden="true"><span>quick</span>art</div>
-      <h1 className="auth-title">Art Supplies<br />Delivered in Minutes</h1>
+      <${LoginHero} />
+      <h1 className="auth-title" aria-label="Art Supplies Delivered in Minutes">
+        <span className="tw" style=${{ '--i': 0 }}>Art</span> <span className="tw" style=${{ '--i': 1 }}>Supplies</span><br />
+        <span className="tw" style=${{ '--i': 2 }}>Delivered</span> <span className="tw" style=${{ '--i': 3 }}>in</span> <span className="tw hl" style=${{ '--i': 4 }}>Minutes<svg className="brush-line" viewBox="0 0 120 14" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 9 C 28 4, 62 3, 117 7" /></svg></span>
+      </h1>
       ${mode === 'checkout' && html`<p className="auth-sub">Log in to place your order. Your cart is saved.</p>`}
       <label className=${'phone-field' + (err ? ' err' : '')} onClick=${() => { setKb(true); inputRef.current && inputRef.current.focus(); }}>
         <span className="cc">+91</span>
@@ -1793,7 +1815,7 @@ function BottomNav({ hidden }) {
   const now = useNow(5000);
   const live = S.orders.filter((o) => !['delivered', 'cancelled'].includes(orderStage(o, now).key)).length;
   return html`<nav className=${'bnav' + (tab === 'explore' ? ' dark' : '')} aria-label="Main" aria-hidden=${hidden || undefined}>
-    <span className="bnav-brand" aria-hidden="true"><span>quick</span>art</span>
+    <span className="bnav-brand" aria-hidden="true"><img className="bb-mark" src=${asset('brand/logo-mark.png')} alt="" /><img className="bb-word" src=${asset('brand/logo-wordmark.png')} alt="" /></span>
     ${TABS.map((t) => html`<button key=${t.id} className=${'bnav-item' + (tab === t.id ? ' on' : '') + (t.id === 'explore' ? ' is-explore' : '')} aria-current=${tab === t.id ? 'page' : undefined} onClick=${() => {
       if (tab === t.id) { const sc = document.querySelector('.tab-screen:not(.off) .scroll'); if (sc) sc.scrollTo({ top: 0, behavior: 'smooth' }); }
       nav.tab(t.id);
