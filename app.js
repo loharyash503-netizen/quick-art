@@ -81,7 +81,7 @@ function freshState() {
   const items = [lineSnap('p19', 1, 1), lineSnap('p14', 0, 1), lineSnap('p12', 0, 2)];
   return {
     v: 1,
-    user: { name: 'Yash', phone: '', loggedIn: false, guest: false, onboarded: false, fields: [] },
+    user: { name: '', phone: '', loggedIn: false, guest: false, onboarded: false, fields: [] },
     addresses: ADDRS, addressId: 'a1',
     cart: {}, saved: [], savedReels: [], liked: [], notify: [], recent: [],
     searches: ['acrylic paint', 'fineliner'],
@@ -96,7 +96,11 @@ function loadState() {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const s = JSON.parse(raw);
-      if (s && s.v === 1) return { ...freshState(), ...s };
+      if (s && s.v === 1) {
+        const n = { ...freshState(), ...s };
+        n.user = { ...n.user, fields: (n.user.fields || []).filter((id) => FIELDS.some((f) => f.id === id)) }; // drop retired fields
+        return n;
+      }
     }
   } catch (e) { /* storage unavailable: start fresh */ }
   return freshState();
@@ -200,8 +204,9 @@ function Stepper({ q, onChange, max, label, soft }) {
 }
 function Avatar({ size, onClick }) {
   const { S } = useApp();
-  const ch = (S.user.name || 'Y').trim().charAt(0).toUpperCase() || 'Y';
-  const inner = html`<span className="avatar" style=${size ? { width: size, height: size, fontSize: size * 0.42 } : null} aria-hidden="true">${ch}</span>`;
+  const nm = S.user.name && S.user.name !== 'there' ? S.user.name.trim() : '';
+  const ch = nm.charAt(0).toUpperCase();
+  const inner = html`<span className="avatar" style=${size ? { width: size, height: size, fontSize: size * 0.42 } : null} aria-hidden="true">${ch || I("user")}</span>`;
   return onClick ? html`<button className="avatar-btn" aria-label="Profile" onClick=${onClick}>${inner}</button>` : inner;
 }
 function CartBtn({ dark, tone }) {
@@ -489,7 +494,7 @@ function FieldsScreen({ params }) {
   const { S, act, nav, toast } = useApp();
   const onboard = params.mode === 'onboard';
   const [sel, setSel] = useState(S.user.fields);
-  const [name, setName] = useState(S.user.name || '');
+  const [name, setName] = useState(onboard ? '' : S.user.name || ''); // new users type their own name
   const toggle = (id) => setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const save = (fields) => {
     act((s) => {
@@ -499,26 +504,34 @@ function FieldsScreen({ params }) {
     if (onboard) nav.tab('home');
     else { nav.pop(); toast('Your fields are updated'); }
   };
-  return html`<div className="screen-col">
-    ${onboard ? html`<div className="fields-top"><p className="eyebrow">Last step</p></div>` : html`<${TopBar} title="Your fields" sub="Choose all that apply" />`}
+  const picked = FIELDS.filter((f) => sel.includes(f.id));
+  return html`<div className="screen-col fields-screen">
+    ${onboard ? html`<div className="fields-top"><span className="step-pill">${I('sparkle')} Last step</span></div>` : html`<${TopBar} title="Your fields" sub="Choose all that apply" />`}
     <div className="stack-body pad">
-      ${onboard && html`<h1 className="h-xl">What do you create?</h1>
-        <p className="muted">We'll suggest materials for your field. Pick more than one if your work overlaps. You can change this anytime in Profile.</p>
-        <label className="text-field"><span>What should we call you?</span><input id="first-name" value=${name} onChange=${(e) => setName(e.target.value)} placeholder="Your first name" autoComplete="given-name" /></label>`}
+      ${onboard && html`<div className="fields-intro">
+        <h1 className="fields-title">What do you create?</h1>
+        <p className="fields-sub">Pick one or more. We'll suggest materials for your field.</p>
+        <label className="text-field fields-name"><span>What should we call you?</span><input id="first-name" value=${name} onChange=${(e) => setName(e.target.value)} placeholder="Your first name" autoComplete="off" /></label>
+      </div>`}
+      <div className="fields-label"><h2>Your fields</h2><span className=${'fields-count' + (sel.length ? ' on' : '')} aria-live="polite">${sel.length ? `${sel.length} selected` : 'None yet'}</span></div>
       <div className="field-grid" role="group" aria-label="Creative fields">
-        ${FIELDS.map((f) => {
+        ${FIELDS.map((f, i) => {
           const on = sel.includes(f.id);
-          return html`<button key=${f.id} className=${'field-tile' + (on ? ' on' : '')} aria-pressed=${on} onClick=${() => toggle(f.id)} style=${{ '--tile': f.bg }}>
+          return html`<button key=${f.id} className=${'field-tile' + (on ? ' on' : '')} aria-pressed=${on} onClick=${() => toggle(f.id)} style=${{ '--i': i }}>
             <span className="field-emoji" aria-hidden="true"><${Emo} k=${f.icon} /></span>
             <span className="field-name">${f.name}</span>
             <span className="field-blurb">${f.blurb}</span>
-            <span className="field-check" aria-hidden="true">${on && I('check')}</span>
+            <span className="field-check" aria-hidden="true">${I('check')}</span>
           </button>`;
         })}
       </div>
+      ${onboard && html`<p className="fields-hint">You can change this anytime in Profile.</p>`}
     </div>
     <div className="bottom-bar col">
-      <button className="btn primary" disabled=${!sel.length} onClick=${() => save(sel)}>${onboard ? (sel.length ? `Show my materials (${sel.length} field${sel.length > 1 ? 's' : ''})` : 'Pick at least one field') : 'Save'}</button>
+      <button className="btn primary fields-cta" disabled=${!sel.length} onClick=${() => save(sel)}>
+        ${picked.length > 0 && html`<span className="cta-stack" aria-hidden="true">${picked.slice(0, 3).map((f) => html`<span key=${f.id}><${Emo} k=${f.icon} /></span>`)}</span>`}
+        ${onboard ? (sel.length ? 'Show my materials' : 'Pick at least one field') : 'Save'}
+      </button>
       ${onboard && html`<button className="btn text" onClick=${() => save([])}>Skip for now</button>`}
     </div>
   </div>`;
@@ -543,7 +556,7 @@ function Home() {
   const buyAgain = [...new Set(S.orders.filter((o) => !o.cancelled).flatMap((o) => o.items.map((i) => i.pid)))].slice(0, 8).map((id) => P[id]);
   const recent = S.recent.filter((id) => P[id]).slice(0, 8).map((id) => P[id]);
   const reels = [...REELS].sort((a, b) => b.fields.filter((f) => fields.includes(f)).length - a.fields.filter((f) => fields.includes(f)).length).slice(0, 6);
-  const name = S.user.guest && !S.user.loggedIn && (!S.user.name || S.user.name === 'there') ? 'there' : S.user.name;
+  const name = S.user.name && S.user.name !== 'there' ? S.user.name : 'there';
 
   return html`<div className="scroll has-nav">
     <header className="home-head">
@@ -1631,10 +1644,10 @@ function EditProfileSheet({ onClose }) {
     onClose();
     toast('Profile updated');
   };
-  const initial = (name.trim().charAt(0) || 'Y').toUpperCase();
+  const initial = name.trim().charAt(0).toUpperCase();
   return html`<${Sheet} title="Edit profile" onClose=${onClose}>
     <form className="profile-form" onSubmit=${save} noValidate>
-      <span className="avatar profile-form-av" aria-hidden="true">${initial}</span>
+      <span className="avatar profile-form-av" aria-hidden="true">${initial || I("user")}</span>
       <label className="text-field"><span>Name</span>
         <input id="profile-name" value=${name} maxLength="40" autoComplete="given-name" aria-invalid=${!!err.name} onChange=${(e) => { setName(e.target.value); setErr({ ...err, name: null }); }} />
         ${err.name && html`<em className="field-err" role="alert">${err.name}</em>`}</label>

@@ -1213,6 +1213,62 @@ h1, h2, h3 { text-wrap: balance; }
   .login *, .login *::before, .login *::after { animation-delay: 0s !important; }
   .brush-line path { stroke-dashoffset: 0; }
 }
+
+/* ---------- Pick your fields ---------- */
+.fields-top { padding: calc(var(--sb) + 20px) 20px 0; }
+.fields-screen .stack-body.pad { padding: 0 20px; }
+.step-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--r-pill); background: var(--lav-100); color: var(--purple-ink); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.step-pill .ic { width: 14px; height: 14px; color: var(--pink); }
+.fields-intro { padding-top: 18px; }
+.fields-title { font-size: 28px; font-weight: 800; letter-spacing: -.025em; line-height: 1.15; animation: tw-up .5s cubic-bezier(.2,.8,.2,1) both; }
+.fields-sub { margin-top: 8px; font-size: 15px; color: var(--ink-2); line-height: 1.45; animation: tw-up .5s cubic-bezier(.2,.8,.2,1) .06s both; }
+.fields-name { margin: 24px 0 0; animation: tw-up .5s cubic-bezier(.2,.8,.2,1) .12s both; }
+.fields-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 32px 0 14px; }
+.fields-label h2 { font-size: 16px; font-weight: 700; }
+.fields-count { font-size: 12.5px; font-weight: 600; color: var(--ink-3); padding: 4px 10px; border-radius: var(--r-pill); background: var(--surface); transition: background .2s, color .2s; }
+.fields-count.on { background: var(--lav-100); color: var(--purple-ink); }
+
+.field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0; }
+.field-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 0; min-height: 156px; padding: 18px 16px 16px; border-radius: 20px; background: var(--card); border: 1.5px solid var(--line); box-shadow: 0 1px 2px rgba(25,23,71,.04); text-align: left;
+  animation: tile-in .45s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(.12s + var(--i) * .045s); transition: transform .15s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease; }
+@keyframes tile-in { from { transform: translateY(14px) scale(.97); opacity: 0; } }
+.field-emoji { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: var(--surface-2); margin-bottom: 14px; transition: background .2s ease; }
+.field-emoji .emo { width: 32px; height: 32px; }
+.field-name { font-size: 15px; font-weight: 700; line-height: 1.25; }
+.field-blurb { margin-top: 4px; font-size: 12.5px; line-height: 1.4; color: var(--ink-3); }
+.field-check { top: 14px; right: 14px; width: 24px; height: 24px; background: var(--card); box-shadow: inset 0 0 0 1.5px var(--lav-300); color: transparent; transition: background .2s ease, box-shadow .2s ease; }
+.field-check .ic { width: 14px; height: 14px; transform: scale(0); transition: transform .25s cubic-bezier(.3,1.6,.5,1); }
+
+.field-tile.on { border-color: var(--purple); background: linear-gradient(160deg, #FFFFFF 0%, var(--lav-50) 55%, var(--lav-100) 100%); box-shadow: 0 10px 24px rgba(104,66,216,.14); }
+.field-tile.on .field-emoji { background: linear-gradient(140deg, #EADDFF, #DCE6FB); animation: icon-pop .5s cubic-bezier(.3,1.6,.5,1); }
+.field-tile.on .field-check { background: var(--grad); box-shadow: none; color: #fff; }
+.field-tile.on .field-check .ic { transform: scale(1); }
+.field-tile.on .field-name { color: var(--purple-ink); }
+@keyframes icon-pop { 0% { transform: scale(1); } 40% { transform: scale(1.18) rotate(-8deg); } 100% { transform: scale(1); } }
+.field-tile:active:not(:disabled) { transform: scale(.96); }
+@media (hover: hover) {
+  .field-tile:not(.on):hover { border-color: var(--lav-300); box-shadow: 0 8px 20px rgba(73,33,201,.08); transform: translateY(-2px); }
+}
+.fields-hint { margin: 20px 0 28px; text-align: center; font-size: 12.5px; color: var(--ink-3); }
+
+.fields-cta { gap: 12px; }
+.cta-stack { display: inline-flex; }
+.cta-stack > span { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #fff; border: 2px solid var(--purple); animation: badge .35s cubic-bezier(.3,1.6,.5,1); }
+.cta-stack > span + span { margin-left: -10px; }
+.cta-stack .emo { width: 18px; height: 18px; }
+
+@media (min-width: 600px) {
+  .field-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+}
+@media (min-width: 900px) {
+  .field-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .fields-title { font-size: 34px; }
+  .fields-name { max-width: 380px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .field-tile, .fields-title, .fields-sub, .fields-name { animation-delay: 0s !important; }
+}
+.avatar .ic { width: 52%; height: 52%; }
 </style>
 
 <div id="root"></div>

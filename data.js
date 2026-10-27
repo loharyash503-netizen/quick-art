@@ -236,11 +236,10 @@ const CATS = [
 ];
 
 const FIELDS = [
-  { id: 'uiux', name: 'UI/UX Design', icon: 'phone', bg: '#F0E9FF', blurb: 'Wireframing, workshops, sketching', kit: ['p20', 'p35', 'p37', 'p14', 'p36', 'p17'] },
   { id: 'graphic', name: 'Graphic Design', icon: 'pen', bg: '#F0E9FF', blurb: 'Markers, liners, lettering', kit: ['p13', 'p14', 'p19', 'p18', 'p15', 'p10'] },
   { id: 'fashion', name: 'Fashion Design', icon: 'dress', bg: '#F0E9FF', blurb: 'Croquis, fabric markers, measuring', kit: ['p22', 'p16', 'p33', 'p32', 'p34', 'p10', 'p9'] },
   { id: 'interior', name: 'Interior Design', icon: 'couch', bg: '#F0E9FF', blurb: 'Drafting, scale, model boards', kit: ['p30', 'p31', 'p23', 'p26', 'p27', 'p28', 'p14'] },
-  { id: 'product', name: 'Product Design', icon: 'puzzle', bg: '#F0E9FF', blurb: 'Ideation sketching, mock-ups', kit: ['p19', 'p13', 'p26', 'p27', 'p28', 'p32'] },
+  { id: 'product', name: 'Product Design', icon: 'puzzle', bg: '#F0E9FF', blurb: 'Ideation sketching, mock-ups', kit: ['p19', 'p13', 'p35', 'p20', 'p26', 'p27', 'p28', 'p32'] },
   { id: 'arch', name: 'Architecture', icon: 'building', bg: '#F0E9FF', blurb: 'Technical pens, sheets, models', kit: ['p30', 'p31', 'p23', 'p26', 'p27', 'p28', 'p9'] },
   { id: 'fine', name: 'Fine Arts', icon: 'palette', bg: '#F0E9FF', blurb: 'Paints, brushes, canvas', kit: ['p1', 'p3', 'p6', 'p24', 'p25', 'p5', 'p11', 'p21'] },
   { id: 'illus', name: 'Illustration', icon: 'writing', bg: '#F0E9FF', blurb: 'Inking, watercolour, markers', kit: ['p15', 'p13', 'p8', 'p21', 'p3', 'p10', 'p19'] },
@@ -346,7 +345,7 @@ const REELS = [
   { id: 'r1', scene: 'markers', title: 'Blending three alcohol markers without streaks', creator: 'inkbymeera', fields: ['illus', 'graphic', 'product'], tags: ['drawing'], products: ['p13', 'p22'], likes: 12400, bg: '#F4EFE6' },
   { id: 'r2', scene: 'watercolor', title: 'Student vs artist grade: how the pigment blooms on 300 gsm', creator: 'wetonwet.studio', fields: ['fine', 'illus'], tags: ['painting'], products: ['p3', 'p21'], likes: 8930, bg: '#F7F6F2' },
   { id: 'r3', scene: 'cut', title: 'One-pass foam board cuts for your model jury', creator: 'model.lab.ahd', fields: ['arch', 'interior', 'product'], tags: ['model'], products: ['p27', 'p28', 'p26'], likes: 5210, bg: '#2F7D59' },
-  { id: 'r4', scene: 'sticky', title: 'Affinity mapping kit for your next UX workshop', creator: 'ux.with.ananya', fields: ['uiux', 'graphic'], tags: ['studio'], products: ['p35', 'p17'], likes: 3880, bg: '#E9E4DA' },
+  { id: 'r4', scene: 'sticky', title: 'Affinity mapping kit for your next UX workshop', creator: 'ux.with.ananya', fields: ['graphic', 'product'], tags: ['studio'], products: ['p35', 'p17'], likes: 3880, bg: '#E9E4DA' },
   { id: 'r5', scene: 'brush', title: 'Which round brush holds a point for acrylic detail?', creator: 'canvas.kabir', fields: ['fine', 'craft'], tags: ['painting'], products: ['p6', 'p1'], likes: 15100, bg: '#22303C' },
   { id: 'r6', scene: 'fineliner', title: 'Line weights for elevations: 0.05 to 0.8 mm', creator: 'drafts.by.dev', fields: ['arch', 'interior'], tags: ['drawing'], products: ['p14', 'p30'], likes: 4420, bg: '#F3F5F7' },
   { id: 'r7', scene: 'tape', title: 'Measuring for your first croquis-to-pattern project', creator: 'studio.tanvi', fields: ['fashion'], tags: ['studio'], products: ['p33', 'p22', 'p32'], likes: 2760, bg: '#F6E3EC' },
