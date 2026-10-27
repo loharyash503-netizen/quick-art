@@ -21,6 +21,7 @@ const PAYS = {
   upi: { label: 'UPI', icon: 'upi' },
   card: { label: 'Card', icon: 'card' },
   cod: { label: 'Pay on delivery', icon: 'cash' },
+  wallet: { label: 'Quick Art Wallet', icon: 'wallet' },
 };
 const PRICE_BANDS = {
   u250: { label: 'Under ₹250', range: [0, 249] },
@@ -84,6 +85,8 @@ function freshState() {
     user: { name: '', phone: '', loggedIn: false, guest: false, onboarded: false, fields: [] },
     addresses: ADDRS, addressId: 'a1',
     cart: {}, saved: [], savedReels: [], liked: [], notify: [], recent: [],
+    myReviews: {}, helpful: [],
+    wallet: { balance: 250, txns: [{ id: 't1', label: 'Welcome bonus', amt: 250, at: Date.now() - 2 * 864e5 }] },
     searches: ['acrylic paint', 'fineliner'],
     orders: [{ id: 'QA20417', items, bill: billOf(items), address: ADDRS[0], pay: 'upi', slot: 'now', placedAt: Date.now() - 3 * 864e5, eta: 14, cancelled: false, sample: true }],
     pay: 'upi', upi: 'yash@okaxis', slot: 'now',
@@ -182,6 +185,24 @@ function Photo({ src }) {
 /* 3D icon (Microsoft Fluent Emoji, MIT) */
 function Emo({ k, cls }) {
   return html`<img className=${'emo ' + (cls || '')} src=${asset('icons/' + k + '.png')} alt="" draggable="false" />`;
+}
+/* Detailed 3D category icon, generated in the logo's colours */
+function Cat3D({ c }) {
+  return html`<img className="emo cat3d" src=${asset('icons3d/' + c.id + '.png')} alt="" draggable="false" />`;
+}
+function BrandTile({ b, wide }) {
+  const { nav } = useApp();
+  const n = PRODUCTS.filter((p) => p.brand === b.name).length;
+  return html`<button className=${'brand-tile' + (wide ? ' wide' : '')} style=${{ '--h': b.hue }} onClick=${() => nav.push('plp', { brand: b.name })} aria-label=${`${b.name}, ${n} products`}>
+    <span className="brand-mono" aria-hidden="true">${b.mono}</span>
+    <span className="brand-txt"><b>${b.short}</b><small>${wide ? b.tag + ' · ' : ''}${n} item${n === 1 ? '' : 's'}</small></span>
+  </button>`;
+}
+function WalletChip() {
+  const { S, openSheet } = useApp();
+  return html`<button className="wallet-chip js-wallet" onClick=${() => openSheet({ type: 'wallet' })} aria-label=${`Wallet balance ${inr(S.wallet.balance)}. Open wallet`}>
+    ${I('wallet')}<b>${inr(S.wallet.balance)}</b>
+  </button>`;
 }
 /* Bold the part of a suggestion that matches what was typed */
 function Hl({ text, q }) {
@@ -380,7 +401,7 @@ function Keypad({ onKey, onDel }) {
 /* Animated Quick Art logo for the login screen. Tap the mark to replay. */
 function LoginHero() {
   const [k, setK] = useState(0);
-  const mark = asset('brand/logo-mark.png');
+  const mark = asset('brand/logo-q.png');
   const mask = `url(${mark})`;
   return html`<div className="login-hero">
     <button type="button" key=${k} className="lh-mark-wrap" aria-label="Quick Art logo. Tap to replay the animation" onClick=${() => setK(k + 1)}>
@@ -392,7 +413,7 @@ function LoginHero() {
       </span>
       <span className="lh-drops" aria-hidden="true"><i></i><i></i><i></i></span>
     </button>
-    <img key=${'w' + k} className="lh-word" src=${asset('brand/logo-wordmark.png')} alt="Quick Art" draggable="false" />
+    <span key=${'w' + k} className="lh-word wordmark">Quick Art</span>
   </div>`;
 }
 function Login({ params }) {
@@ -446,7 +467,7 @@ function Login({ params }) {
   </div>`;
 }
 function PaperPlane() {
-  return html`<svg className="plane" viewBox="0 0 80 64" aria-hidden="true"><path d="M8 58c10-2 14-10 20-16" fill="none" stroke="#191747" stroke-width="1.6" stroke-dasharray="3 4" stroke-linecap="round"/><path d="M28 34 76 6 60 50 44 40z" fill="#fff" stroke="#191747" stroke-width="2" stroke-linejoin="round"/><path d="M44 40 76 6 36 38l4 12z" fill="#F0E9FF" stroke="#191747" stroke-width="2" stroke-linejoin="round"/></svg>`;
+  return html`<svg className="plane" viewBox="0 0 80 64" aria-hidden="true"><path d="M8 58c10-2 14-10 20-16" fill="none" stroke="#1E1530" stroke-width="1.6" stroke-dasharray="3 4" stroke-linecap="round"/><path d="M28 34 76 6 60 50 44 40z" fill="#fff" stroke="#1E1530" stroke-width="2" stroke-linejoin="round"/><path d="M44 40 76 6 36 38l4 12z" fill="#EEEAF4" stroke="#1E1530" stroke-width="2" stroke-linejoin="round"/></svg>`;
 }
 function Otp({ params }) {
   const { nav, act, toast, setStackDirect } = useApp();
@@ -562,7 +583,7 @@ function Home() {
     <header className="home-head">
       <div className="home-top">
         <div className="hello"><h1>Hey ${name}! <${Emo} k="wave" cls="wave" /></h1><p>Get your art supplies, faster!</p></div>
-        <div className="row-gap"><${CartBtn} tone="white" /><${Avatar} onClick=${() => nav.tab('profile')} /></div>
+        <div className="row-gap"><${WalletChip} /><${CartBtn} tone="white" /></div>
       </div>
       <button className="loc" onClick=${() => openSheet({ type: 'address' })} aria-label=${`Delivering to ${addr.label}, ${addr.line}. Change address`}>
         ${I('pin')}<span className="loc-txt"><b>${addr.label}</b> · ${addr.line}</span>${I('chevd')}
@@ -573,7 +594,7 @@ function Home() {
         <button className="mic" aria-label="Search by voice" onClick=${() => nav.push('search', { voice: true })}>${I('mic')}</button>
       </div>
       <div className="quick-row">
-        ${CATS.slice(0, 8).map((c) => html`<button key=${c.id} className="quick" onClick=${() => nav.push('plp', { cat: c.id })}><span className="quick-emoji" aria-hidden="true"><${Emo} k=${c.icon} /></span><span className="quick-label">${c.short || c.name}</span></button>`)}
+        ${CATS.slice(0, 8).map((c) => html`<button key=${c.id} className="quick" onClick=${() => nav.push('plp', { cat: c.id })}><span className="quick-emoji" aria-hidden="true"><${Cat3D} c=${c} /></span><span className="quick-label">${c.short || c.name}</span></button>`)}
       </div>
     </header>
 
@@ -599,15 +620,13 @@ function Home() {
       <button className="link pad-x" onClick=${() => nav.push('plp', { field: field.id })}>See everything for ${field.name} ${I('right')}</button>
     </section>` : html`<section className="sec pad-x">
       <button className="nudge" onClick=${() => nav.push('fields', { mode: 'edit' })}>
-        <${Emo} k="target" /><span><b>Tell us what you create</b><small>Get kits for UI/UX, fashion, architecture, fine arts and more.</small></span>${I('chev')}
+        <${Emo} k="target" /><span><b>Tell us what you create</b><small>Get kits for fashion, architecture, fine arts and more.</small></span>${I('chev')}
       </button>
     </section>`}
 
     <section className="sec">
-      <${SecHead} title="Popular Categories" action="View all" onAction=${() => nav.tab('categories')} />
-      <div className="rail cats">
-        ${CATS.map((c) => html`<button key=${c.id} className="cat-tile" style=${{ background: c.bg }} onClick=${() => nav.push('plp', { cat: c.id })}><span className="cat-emoji" aria-hidden="true"><${Emo} k=${c.icon} /></span><span>${c.short || c.name}</span></button>`)}
-      </div>
+      <${SecHead} title="Shop by brand" sub="Trusted names in Indian classrooms and studios" action="All brands" onAction=${() => nav.tab('categories', 'brands')} />
+      <div className="rail brands">${BRAND_INFO.map((b) => html`<${BrandTile} key=${b.name} b=${b} />`)}</div>
     </section>
 
     <section className="sec">
@@ -647,8 +666,9 @@ function sceneSvg(scene) {
 
 /* ---------- Categories ---------- */
 function Categories() {
-  const { S, nav } = useApp();
+  const { S, nav, catSeg } = useApp();
   const [seg, setSeg] = useState('materials');
+  useEffect(() => { if (catSeg) setSeg(catSeg.seg); }, [catSeg]);
   const fieldsSorted = [...FIELDS].sort((a, b) => S.user.fields.includes(b.id) - S.user.fields.includes(a.id));
   return html`<div className="scroll has-nav">
     <header className="plain-head">
@@ -658,10 +678,12 @@ function Categories() {
     <div className="seg pad-x" role="tablist" aria-label="Browse by">
       <button role="tab" aria-selected=${seg === 'materials'} className=${seg === 'materials' ? 'on' : ''} onClick=${() => setSeg('materials')}>Materials</button>
       <button role="tab" aria-selected=${seg === 'fields'} className=${seg === 'fields' ? 'on' : ''} onClick=${() => setSeg('fields')}>By field</button>
+      <button role="tab" aria-selected=${seg === 'brands'} className=${seg === 'brands' ? 'on' : ''} onClick=${() => setSeg('brands')}>Brands</button>
     </div>
-    ${seg === 'materials' ? html`<div className="cat-grid pad-x">
+    ${seg === 'brands' && html`<div className="brand-grid pad-x">${BRAND_INFO.map((b) => html`<${BrandTile} key=${b.name} b=${b} wide />`)}</div>`}
+    ${seg === 'brands' ? null : seg === 'materials' ? html`<div className="cat-grid pad-x">
       ${CATS.map((c) => html`<button key=${c.id} className="cat-cell" onClick=${() => nav.push('plp', { cat: c.id })}>
-        <span className="cat-cell-ic" style=${{ background: c.bg }} aria-hidden="true"><${Emo} k=${c.icon} /></span>
+        <span className="cat-cell-ic" style=${{ background: c.bg }} aria-hidden="true"><${Cat3D} c=${c} /></span>
         <span className="cat-cell-name">${c.name}</span>
         <span className="cat-cell-n">${PRODUCTS.filter((p) => p.cat === c.id).length} item${PRODUCTS.filter((p) => p.cat === c.id).length === 1 ? "" : "s"}</span>
       </button>`)}
@@ -733,20 +755,21 @@ function ResultsGrid({ list, loading, onClear, filtered }) {
 /* ---------- Product list (category, field, collection) ---------- */
 function PLP({ params }) {
   const { nav, addMany } = useApp();
-  const { cat, field, collection } = params;
+  const { cat, field, collection, brand } = params;
   const c = cat && catOf(cat), fd = field && FIELDS.find((x) => x.id === field);
   const base = useMemo(() => {
+    if (brand) return PRODUCTS.filter((p) => p.brand === brand);
     if (c) return PRODUCTS.filter((p) => p.cat === cat);
     if (fd) return fd.kit.map((id) => P[id]).concat(PRODUCTS.filter((p) => !fd.kit.includes(p.id) && p.fields.includes(field)));
     return [...PRODUCTS].filter((p) => pctOff(dvOf(p)) >= 15).sort((a, b) => pctOff(dvOf(b)) - pctOff(dvOf(a)));
-  }, [cat, field, collection]);
-  const subs = c ? ['All', ...new Set(base.map((p) => p.sub))] : [];
+  }, [cat, field, collection, brand]);
+  const subs = c || brand ? ['All', ...new Set(base.map((p) => p.sub))] : [];
   const [sub, setSub] = useState('All');
   const [f, setF] = useState(NO_FILTERS);
   const [sort, setSort] = useState('rel');
   const loading = useLoading([sub, JSON.stringify(f), sort]);
   const list = applyFilters(sub === 'All' ? base : base.filter((p) => p.sub === sub), f, sort);
-  const title = c ? c.name : fd ? fd.name : 'Best deals';
+  const title = brand ? (BRAND_INFO.find((b) => b.name === brand) || { short: brand }).short : c ? c.name : fd ? fd.name : 'Best deals';
   const essentials = fd ? fd.kit.map((id) => P[id]).filter((p) => dvOf(p).stock > 0).slice(0, 4) : [];
   return html`<div className="screen-col">
     <${TopBar} title=${title} sub=${`${base.length} items`} right=${html`<button className="round-btn" aria-label="Search" onClick=${() => nav.push('search')}>${I('search')}</button><${CartBtn} />`} />
@@ -810,7 +833,7 @@ function Search({ params }) {
     </header>
     <div className="stack-body">
       ${sugg ? html`<ul className="sugg" role="listbox" aria-label="Suggestions">
-        ${sugg.cats.map((c) => html`<li key=${c.id}><button onClick=${() => nav.push('plp', { cat: c.id })}><span className="sugg-ic" style=${{ background: c.bg }} aria-hidden="true"><${Emo} k=${c.icon} /></span><span><b><${Hl} text=${c.name} q=${q} /></b><small>Category</small></span>${I('chev')}</button></li>`)}
+        ${sugg.cats.map((c) => html`<li key=${c.id}><button onClick=${() => nav.push('plp', { cat: c.id })}><span className="sugg-ic" style=${{ background: c.bg }} aria-hidden="true"><${Cat3D} c=${c} /></span><span><b><${Hl} text=${c.name} q=${q} /></b><small>Category</small></span>${I('chev')}</button></li>`)}
         ${sugg.brands.map((b) => html`<li key=${b}><button onClick=${() => submit(b)}><span className="sugg-ic" aria-hidden="true">${I('tag')}</span><span><b><${Hl} text=${b} q=${q} /></b><small>Brand</small></span>${I('chev')}</button></li>`)}
         ${sugg.prods.map((p) => html`<li key=${p.id} className="sugg-prod"><button onClick=${() => viewProduct(p.id)}><span className="sugg-ic img"><${Art} art=${p.art} bg=${p.bg} /></span><span><b><${Hl} text=${p.name} q=${q} /></b><small>${p.brand} · ${inr(dvOf(p).price)}</small></span></button>
           ${dvOf(p).stock > 0 ? html`<${QuickAdd} p=${p} />` : html`<span className="sugg-oos">Out of stock</span>`}</li>`)}
@@ -891,11 +914,11 @@ function PDP({ params }) {
       </div>
 
       <div className="pdp-body pad-x">
-        <button className="brand-link" onClick=${() => nav.push('search', { q: p.brand })}>${p.brand} ${I('chev')}</button>
+        <button className="brand-link" onClick=${() => nav.push('plp', { brand: p.brand })}>${p.brand} ${I('chev')}</button>
         <h1 className="pdp-title">${p.name}</h1>
         <div className="pdp-price"><${Price} v=${v} big />${pct >= 5 && html`<span className="save">Save ${inr(v.mrp - v.price)}</span>`}</div>
         <p className="tax">Inclusive of all taxes</p>
-        <p className="rating">${I('star', { fill: true, cls: 'star' })} <b>${p.rating}</b> <span>(${p.reviews.toLocaleString('en-IN')} reviews)</span></p>
+        <button className="rating rating-link" onClick=${() => { const el = document.getElementById('reviews-' + p.id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>${I('star', { fill: true, cls: 'star' })} <b>${p.rating}</b> <span>(${p.reviews.toLocaleString('en-IN')} reviews)</span> ${I('chevd')}</button>
 
         ${p.variants.length > 1 && html`<div className="variants">
           <h3 className="mini-h">Choose an option</h3>
@@ -935,6 +958,7 @@ function PDP({ params }) {
           <span className="reel-thumb-art" dangerouslySetInnerHTML=${{ __html: sceneSvg(r.scene) }}></span><span className="reel-thumb-play" aria-hidden="true">${I('play')}</span><span className="reel-thumb-cap">${r.title}</span>
         </button>`)}</div>
       </section>`}
+      <${Reviews} p=${p} />
       <section className="sec">
         <${SecHead} title="Pairs well with" />
         <${Rail} items=${related} />
@@ -950,6 +974,160 @@ function PDP({ params }) {
           <button className="btn lav grow" onClick=${() => addToCart(p.id, vi, q)}>${I('cart')} Add to cart</button>
           <button className="btn primary" onClick=${() => buyNow(p.id, vi, q)}>Buy now</button>`}
     </div>
+  </div>`;
+}
+
+/* ---------- Reviews and ratings ---------- */
+const STAR_WORDS = ['', 'Terrible', 'Bad', 'Okay', 'Good', 'Loved it!'];
+function Stars({ n, size }) {
+  return html`<span className="stars-row" style=${size ? { '--s': size + 'px' } : null} role="img" aria-label=${n + ' out of 5 stars'}>${[1, 2, 3, 4, 5].map((i) => html`<span key=${i} className=${i <= Math.round(n) ? 'on' : ''}>${I('star', { fill: true })}</span>`)}</span>`;
+}
+function StarPicker({ value, onChange, size }) {
+  return html`<div className="star-pick" role="radiogroup" aria-label="Your rating" style=${{ '--s': (size || 40) + 'px' }}>
+    ${[1, 2, 3, 4, 5].map((n) => html`<button key=${n} type="button" role="radio" aria-checked=${value === n} aria-label=${`${n} star${n > 1 ? 's' : ''}: ${STAR_WORDS[n]}`} className=${'star-btn2' + (value >= n ? ' on' : '')} style=${{ '--d': n * 0.04 + 's' }} onClick=${() => onChange(n)}>${I('star', { fill: value >= n })}</button>`)}
+  </div>`;
+}
+/* Shrink a picked photo to a small JPEG so it fits in local storage */
+function shrinkPhoto(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onerror = rej;
+    r.onload = () => {
+      const im = new Image();
+      im.onerror = rej;
+      im.onload = () => {
+        const k = Math.min(1, 480 / Math.max(im.width, im.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+        res(c.toDataURL('image/jpeg', 0.78));
+      };
+      im.src = r.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+function Reviews({ p }) {
+  const { S, act } = useApp();
+  const [all, setAll] = useState(false);
+  const [write, setWrite] = useState(false);
+  const [view, setView] = useState(null);
+  const me = S.user.name && S.user.name !== 'there' ? S.user.name : 'You';
+  const mine = (S.myReviews[p.id] || []).map((r, i) => ({ ...r, id: p.id + '-me' + i, name: me, mine: true }));
+  const list = [...mine, ...reviewsFor(p)];
+  const bars = ratingBars(p);
+  const shot = asset(p.art.photo || '');
+  const photosOf = (r) => (r.mine ? r.photos || [] : r.photo ? [shot] : []);
+  const photos = list.flatMap((r) => photosOf(r).map((src) => ({ src, r, flip: !r.mine && r.flip })));
+  const shown = all ? list : list.slice(0, 3);
+  const helpful = (id) => act((s) => { s.helpful = s.helpful.includes(id) ? s.helpful.filter((x) => x !== id) : [...s.helpful, id]; });
+  return html`<section className="sec reviews pad-x" id=${'reviews-' + p.id}>
+    <div className="rv-top"><div><h2>Ratings & reviews</h2><p>From verified buyers</p></div></div>
+    <div className="rv-summary card">
+      <div className="rv-score"><b>${p.rating.toFixed(1)}</b><${Stars} n=${p.rating} /><small>${p.reviews.toLocaleString('en-IN')} ratings</small></div>
+      <div className="rv-bars">${bars.map((pc, i) => html`<div key=${i} className="rv-bar"><span>${5 - i}${I('star', { fill: true })}</span><i><em style=${{ width: pc + '%', '--d': i * 0.08 + 's' }}></em></i><small>${pc}%</small></div>`)}</div>
+    </div>
+    ${photos.length > 0 && html`<div className="rv-photos-h"><h3 className="mini-h">Customer photos</h3><small>${photos.length}</small></div>
+      <div className="rv-photos">${photos.map((x, i) => html`<button key=${i} className="rv-photo" onClick=${() => setView(x)} aria-label=${'Photo by ' + x.r.name}><img src=${x.src} alt="" className=${x.flip ? 'flip' : ''} /></button>`)}</div>`}
+    <button className="btn ghost rv-write" onClick=${() => setWrite(true)}>${I('edit')} Write a review</button>
+    <div className="rv-list">
+      ${shown.map((r) => html`<article key=${r.id} className="rv-item">
+        <div className="rv-head"><span className="rv-av" aria-hidden="true">${r.name.charAt(0)}</span>
+          <div><b>${r.name}</b><small>${r.mine ? 'Just now' : r.days + ' days ago'} · <span className="rv-ver">${I('verified')} Verified purchase</span></small></div></div>
+        <div className="rv-rate"><${Stars} n=${r.rating} size=${14} />${r.title && html`<b>${r.title}</b>`}</div>
+        ${r.text && html`<p>${r.text}</p>`}
+        ${photosOf(r).length > 0 && html`<div className="rv-item-photos">${photosOf(r).map((src, i) => html`<button key=${i} className="rv-photo sm" onClick=${() => setView({ src, r, flip: !r.mine && r.flip })} aria-label="Open photo"><img src=${src} alt="" className=${!r.mine && r.flip ? 'flip' : ''} /></button>`)}</div>`}
+        ${!r.mine && html`<button className=${'rv-help' + (S.helpful.includes(r.id) ? ' on' : '')} aria-pressed=${S.helpful.includes(r.id)} onClick=${() => helpful(r.id)}>${I('thumb')} Helpful · ${r.helpful + (S.helpful.includes(r.id) ? 1 : 0)}</button>`}
+      </article>`)}
+    </div>
+    ${list.length > 3 && html`<button className="link rv-more" onClick=${() => setAll(!all)}>${all ? 'Show fewer reviews' : `See all ${list.length} reviews`} ${I(all ? 'chevd' : 'right')}</button>`}
+    <p className="proto-note">Sample reviews in this prototype.</p>
+    ${write && html`<${ReviewSheet} p=${p} onClose=${() => setWrite(false)} />`}
+    ${view && html`<${Sheet} title=${'Photo by ' + view.r.name} onClose=${() => setView(null)}><div className="rv-view"><img src=${view.src} alt=${'Customer photo of ' + p.name} className=${view.flip ? 'flip' : ''} /><${Stars} n=${view.r.rating} size=${16} />${view.r.text && html`<p>${view.r.text}</p>`}</div><//>`}
+  </section>`;
+}
+function ReviewSheet({ p, onClose }) {
+  const { act, toast } = useApp();
+  const [rating, setRating] = useState(0);
+  const [title, setTitle] = useState('');
+  const [text, setText] = useState('');
+  const [photos, setPhotos] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const fileRef = useRef();
+  const pick = async (e) => {
+    const files = [...e.target.files].slice(0, 3 - photos.length);
+    e.target.value = '';
+    if (!files.length) return;
+    setBusy(true);
+    try { const urls = await Promise.all(files.map(shrinkPhoto)); setPhotos((x) => [...x, ...urls].slice(0, 3)); }
+    catch (err) { toast('That photo could not be read. Try a JPG or PNG.'); }
+    setBusy(false);
+  };
+  const submit = () => {
+    act((s) => { s.myReviews[p.id] = [{ rating, title: title.trim(), text: text.trim(), photos }, ...(s.myReviews[p.id] || [])]; });
+    setDone(true);
+    setTimeout(onClose, 1700);
+  };
+  if (done) return html`<${Sheet} title="Review posted" onClose=${onClose}><div className="rv-done"><span className="result-ic good pop-in">${I('check')}</span><b>Thanks for your review!</b><${Stars} n=${rating} size=${22} /><p className="muted">It now shows at the top of the reviews.</p></div><//>`;
+  return html`<${Sheet} title="Write a review" onClose=${onClose} tall>
+    <div className="rv-form">
+      <div className="rv-prod"><${Art} art=${p.art} bg=${p.bg} /><div><small>${p.brand}</small><b>${p.name}</b></div></div>
+      <div className="rv-rate-pick">
+        <h4>How would you rate it?</h4>
+        <${StarPicker} value=${rating} onChange=${setRating} size=${42} />
+        <p className=${'rv-word' + (rating ? ' on' : '')} key=${rating} aria-live="polite">${rating ? STAR_WORDS[rating] : 'Tap a star to rate'}</p>
+      </div>
+      <label className="text-field"><span>Title <small>(optional)</small></span><input id="rv-title" maxLength="60" value=${title} onChange=${(e) => setTitle(e.target.value)} placeholder="Sum it up in a few words" /></label>
+      <label className="text-field"><span>Your review <small>(optional)</small></span><textarea id="rv-text" rows="3" maxLength="500" value=${text} onChange=${(e) => setText(e.target.value)} placeholder="What did you like? How was the quality?"></textarea></label>
+      <div className="rv-add">
+        <span className="rv-add-label">Add photos <small>(up to 3)</small></span>
+        <div className="rv-add-row">
+          ${photos.map((src, i) => html`<span key=${i} className="rv-thumb"><img src=${src} alt=${'Your photo ' + (i + 1)} /><button type="button" aria-label="Remove photo" onClick=${() => setPhotos(photos.filter((_, j) => j !== i))}>${I('x')}</button></span>`)}
+          ${photos.length < 3 && html`<button type="button" className="rv-add-btn" disabled=${busy} onClick=${() => fileRef.current && fileRef.current.click()}>${I(busy ? 'clock' : 'camera')}<small>${busy ? 'Adding' : 'Add'}</small></button>`}
+          <input ref=${fileRef} id="rv-file" type="file" accept="image/*" multiple className="sr-only" onChange=${pick} />
+        </div>
+      </div>
+      <button className="btn primary" disabled=${!rating} onClick=${submit}>${rating ? 'Submit review' : 'Choose a rating to submit'}</button>
+    </div>
+  <//>`;
+}
+/* Delivery rating, styled like the rating step in common delivery apps: stars, quick tags, note, submit. */
+const GOOD_TAGS = ['On time', 'Well packed', 'Polite partner', 'Right items', 'Great quality'];
+const BAD_TAGS = ['Late delivery', 'Damaged item', 'Wrong item', 'Poor packing', 'Rude behaviour'];
+function RateOrder({ o }) {
+  const { act } = useApp();
+  const [stars, setStars] = useState(o.rating || 0);
+  const [tags, setTags] = useState(o.ratingTags || []);
+  const [note, setNote] = useState(o.ratingText || '');
+  const [editing, setEditing] = useState(!o.rating);
+  const pool = stars >= 4 ? GOOD_TAGS : BAD_TAGS;
+  const pickStars = (n) => { if ((n >= 4) !== (stars >= 4)) setTags([]); setStars(n); };
+  const submit = () => {
+    act((s) => { const x = s.orders.find((y) => y.id === o.id); x.rating = stars; x.ratingTags = tags; x.ratingText = note.trim(); });
+    setEditing(false);
+  };
+  if (!editing) {
+    return html`<div className="rate card rated">
+      <span className="result-ic good sm pop-in">${I('check')}</span>
+      <b>Thanks for your feedback!</b>
+      <${Stars} n=${o.rating} size=${20} />
+      ${(o.ratingTags || []).length > 0 && html`<div className="chips wrap center">${o.ratingTags.map((t) => html`<span key=${t} className="chip on static">${t}</span>`)}</div>`}
+      ${o.ratingText && html`<p className="muted">“${o.ratingText}”</p>`}
+      <button className="link" onClick=${() => setEditing(true)}>Edit rating</button>
+    </div>`;
+  }
+  return html`<div className="rate card">
+    <b>How was your delivery?</b>
+    <small>Rate ${RIDER.name} and your order</small>
+    <${StarPicker} value=${stars} onChange=${pickStars} size=${38} />
+    <p className=${'rv-word' + (stars ? ' on' : '')} key=${stars} aria-live="polite">${stars ? STAR_WORDS[stars] : 'Tap a star to rate'}</p>
+    ${stars > 0 && html`<div className="rate-more">
+      <p className="rate-q">${stars >= 4 ? 'What went well?' : 'What went wrong?'}</p>
+      <div className="chips wrap center">${pool.map((t) => html`<button key=${t} type="button" className=${'chip' + (tags.includes(t) ? ' on' : '')} aria-pressed=${tags.includes(t)} onClick=${() => setTags(tags.includes(t) ? tags.filter((x) => x !== t) : [...tags, t])}>${tags.includes(t) && I('check')} ${t}</button>`)}</div>
+      <label className="text-field"><span className="sr-only">Add a note</span><textarea id="rate-note" rows="2" maxLength="300" value=${note} onChange=${(e) => setNote(e.target.value)} placeholder="Add a note (optional)"></textarea></label>
+    </div>`}
+    <button className="btn primary" disabled=${!stars} onClick=${submit}>Submit</button>
   </div>`;
 }
 
@@ -1120,7 +1298,6 @@ function Cart() {
       <button className="round-btn white" aria-label="Back" onClick=${nav.pop}>${I('left')}</button>
       <div className="topbar-t"><h1>My Cart</h1><p>${cart.count ? 'Almost there!' : 'Nothing here yet'}</p></div>
       ${cart.count > 0 && html`<button className="pill-outline" onClick=${() => setConfirmClear(true)}>${I('trash')} Clear Cart</button>`}
-      <${Avatar} />
     </header>
     <div className="stack-body">
       ${confirmClear && html`<div className="confirm pad-m" role="alertdialog" aria-label="Clear cart">
@@ -1195,13 +1372,14 @@ function AddressPicker({ onPicked }) {
   </div>`;
 }
 function Checkout() {
-  const { S, act, nav, cart } = useApp();
+  const { S, act, nav, cart, openSheet } = useApp();
   const [items, setItems] = useState(false);
   const [upiErr, setUpiErr] = useState('');
   const addr = S.addresses.find((a) => a.id === S.addressId) || S.addresses[0];
   if (!cart.count) return html`<div className="screen-col"><${TopBar} title="Checkout" /><${Empty} icon="cart" title="Your cart is empty" cta="Go to home" onCta=${() => nav.tab('home')} /></div>`;
   const pay = () => {
     if (S.pay === 'upi' && !/^[\w.\-]{2,}@[a-z]{2,}$/i.test(S.upi.trim())) { setUpiErr('Enter a UPI ID like name@bank.'); return; }
+    if (S.pay === 'wallet' && S.wallet.balance < cart.bill.total) { openSheet({ type: 'wallet', need: cart.bill.total - S.wallet.balance }); return; }
     nav.push('paying');
   };
   const slotOpts = [['now', `Now, in about ${addr.eta} min`], ['eve', SLOTS.eve], ['tmr', SLOTS.tmr]];
@@ -1218,6 +1396,7 @@ function Checkout() {
           ${S.pay === 'upi' && html`<label className="text-field inset"><span>UPI ID</span><input id="upi-id" value=${S.upi} onChange=${(e) => { setUpiErr(''); act((s) => { s.upi = e.target.value; }); }} aria-invalid=${!!upiErr} autoComplete="off" />${upiErr && html`<em className="field-err" role="alert">${upiErr}</em>`}</label>`}
           <label className=${'radio-card' + (S.pay === 'card' ? ' on' : '')}><input type="radio" name="pay" checked=${S.pay === 'card'} onChange=${() => act((s) => { s.pay = 'card'; })} /><span className="rc-ic">${I('card')}</span><span className="rc-txt"><b>Card</b><small>Saved Visa ending 4242 (sample)</small></span></label>
           <label className=${'radio-card' + (S.pay === 'cod' ? ' on' : '')}><input type="radio" name="pay" checked=${S.pay === 'cod'} onChange=${() => act((s) => { s.pay = 'cod'; })} /><span className="rc-ic">${I('cash')}</span><span className="rc-txt"><b>Pay on delivery</b><small>Cash or UPI at your door. No extra fee.</small></span></label>
+          <label className=${'radio-card' + (S.pay === 'wallet' ? ' on' : '')}><input type="radio" name="pay" checked=${S.pay === 'wallet'} onChange=${() => act((s) => { s.pay = 'wallet'; })} /><span className="rc-ic">${I('wallet')}</span><span className="rc-txt"><b>Quick Art Wallet</b><small>${S.wallet.balance >= cart.bill.total ? `Balance ${inr(S.wallet.balance)}` : `Balance ${inr(S.wallet.balance)}. Add ${inr(cart.bill.total - S.wallet.balance)} to use it`}</small></span></label>
         </div>
       </section>
       <section className="co-sec in-flow-bill">
@@ -1235,7 +1414,7 @@ function Checkout() {
     </aside>
     <div className="bottom-bar">
       <div className="pay-total"><small>To pay</small><b>${inr(cart.bill.total)}</b></div>
-      <button className="btn primary grow" onClick=${pay}>${I('lock')} ${S.pay === 'cod' ? 'Place order' : `Pay ${inr(cart.bill.total)}`}</button>
+      <button className="btn primary grow place-btn" onClick=${pay}>${I('homebox')} ${S.pay === 'cod' ? 'Place order' : `Place order · ${inr(cart.bill.total)}`}</button>
     </div>
   </div>`;
 }
@@ -1246,12 +1425,12 @@ function Paying() {
   useEffect(() => {
     setSt('wait');
     const t = setTimeout(() => {
-      if (S.failNext && S.pay !== 'cod') { act((s) => { s.failNext = false; }); setSt('fail'); }
+      if (S.failNext && S.pay !== 'cod' && S.pay !== 'wallet') { act((s) => { s.failNext = false; }); setSt('fail'); }
       else { const oid = placeOrder(); nav.go('home', [['confirm', { oid }]]); }
     }, 1900);
     return () => clearTimeout(t);
   }, [run]);
-  const msg = { upi: 'Approve the request in your UPI app.', card: 'Confirming with your bank.', cod: 'Confirming your order with the store.' }[S.pay];
+  const msg = { upi: 'Approve the request in your UPI app.', card: 'Confirming with your bank.', cod: 'Confirming your order with the store.', wallet: 'Paying from your Quick Art Wallet.' }[S.pay];
   if (st === 'fail') return html`<div className="screen-col center-col pad-x">
     <span className="result-ic bad">${I('x')}</span>
     <h1 className="h-xl">Payment didn't go through</h1>
@@ -1266,26 +1445,64 @@ function Paying() {
     <button className="btn text" onClick=${nav.pop}>Cancel</button>
   </div>`;
 }
+/* Order placed: a scooter rides up to the house, the parcel drops at the door, a tick pops and confetti falls. */
+function DeliveryScene() {
+  const confetti = ['#47799A', '#7FA6BF', '#3F2470', '#B0407F', '#E8B84A', '#47799A', '#B0407F', '#7FA6BF', '#E8B84A', '#3F2470'];
+  return html`<svg className="cf-scene" viewBox="0 0 320 160" aria-hidden="true">
+    <circle cx="250" cy="40" r="16" className="cf-sun" />
+    <path d="M0 132 H320" className="cf-road" />
+    <path d="M0 132 H320" className="cf-road-dash" />
+    <g className="cf-house">
+      <path d="M196 84 L236 54 L276 84 Z" className="cf-roof" />
+      <rect x="202" y="82" width="68" height="50" rx="3" className="cf-wall" />
+      <rect x="230" y="104" width="16" height="28" rx="2" className="cf-door" />
+      <rect x="208" y="92" width="14" height="12" rx="2" className="cf-win" />
+      <rect x="252" y="92" width="14" height="12" rx="2" className="cf-win" />
+    </g>
+    <g className="cf-box"><rect x="246" y="118" width="14" height="13" rx="2" /><path d="M246 123 H260 M253 118 V131" /></g>
+    <g className="cf-ride">
+      <g className="cf-bounce">
+        <rect x="30" y="104" width="22" height="16" rx="3" className="cf-crate" />
+        <path d="M24 122 H66 L72 112 H58 L54 104" className="cf-bike" />
+        <circle cx="32" cy="126" r="7" className="cf-wheel" /><circle cx="68" cy="126" r="7" className="cf-wheel" />
+        <circle cx="52" cy="92" r="6" className="cf-head" />
+        <path d="M52 98 L50 112 L60 114" className="cf-body" />
+      </g>
+      <path d="M8 112 h10 M4 120 h12" className="cf-speed" />
+    </g>
+    <g className="cf-tick"><circle cx="236" cy="34" r="15" /><path d="M229 34 l5 5 l9 -10" /></g>
+    ${confetti.map((c, i) => html`<rect key=${i} className="cf-conf" x=${150 + ((i * 37) % 160)} y="-10" width="5" height="9" rx="1.5" fill=${c} style=${{ '--d': 1.75 + i * 0.07 + 's', '--x': ((i % 2 ? 1 : -1) * (8 + i * 3)) + 'px', '--r': (i % 2 ? 260 : -220) + 'deg' }} />`)}
+  </svg>`;
+}
 function Confirm({ params }) {
   const { S, nav } = useApp();
   const o = S.orders.find((x) => x.id === params.oid);
   if (!o) return html`<div className="screen-col"><${Empty} icon="orders" title="Order not found" cta="Go home" onCta=${() => nav.tab('home')} /></div>`;
+  const n = o.items.reduce((a, i) => a + i.qty, 0);
+  const now = o.slot === 'now';
   return html`<div className="screen-col">
-    <div className="stack-body pad-x confirm-body">
-      <span className="result-ic good pop-in">${I('check')}</span>
-      <h1 className="h-xl">Order placed!</h1>
-      <p className="muted">${o.slot === 'now' ? `Arriving in about ${o.eta} minutes` : `Scheduled for ${SLOTS[o.slot]}`} at ${o.address.label}.</p>
-      <div className="card receipt">
-        <div className="bill-row"><span>Order ID</span><b>#${o.id}</b></div>
-        <div className="bill-row"><span>Items</span><span>${o.items.reduce((a, i) => a + i.qty, 0)}</span></div>
-        <div className="bill-row"><span>Paid via</span><span>${PAYS[o.pay].label}</span></div>
-        <div className="bill-row total"><span>${o.pay === 'cod' ? 'To pay on delivery' : 'Amount paid'}</span><span>${inr(o.bill.total)}</span></div>
+    <div className="stack-body cf">
+      <section className="cf-hero">
+        <${DeliveryScene} />
+        <h1 className="cf-title">Order placed!</h1>
+        <p className="cf-sub">${now ? html`Arriving at your door in about <b>${o.eta} min</b>` : html`Scheduled for <b>${SLOTS[o.slot]}</b>`}</p>
+        <span className="cf-id">Order #${o.id}</span>
+      </section>
+      <div className="cf-body pad-x">
+        <div className="card cf-card cf-eta" style=${{ '--i': 0 }}>
+          <div className="cf-row"><span className="cf-ic">${I('homebox')}</span><div><b>Delivering to ${o.address.label}</b><small>${o.address.line}, ${o.address.area}</small></div></div>
+          ${now && html`<${StageDots} idx=${0} />`}
+        </div>
+        <div className="card cf-card" style=${{ '--i': 1 }}>
+          <div className="cf-row between"><b>${n} item${n === 1 ? '' : 's'}</b><span className="thumb-strip sm">${o.items.slice(0, 5).map((i) => html`<${Art} key=${i.pid + i.vi} art=${P[i.pid].art} bg=${P[i.pid].bg} />`)}</span></div>
+          <div className="bill-row"><span>Paid with</span><span>${PAYS[o.pay].label}</span></div>
+          <div className="bill-row total"><span>${o.pay === 'cod' ? 'To pay on delivery' : 'Amount paid'}</span><span>${inr(o.bill.total)}</span></div>
+        </div>
+        <div className="cf-actions" style=${{ '--i': 2 }}>
+          <button className="btn primary" onClick=${() => nav.go('orders', [['order', { oid: o.id }]])}>${I('truck')} Track order</button>
+          <button className="btn ghost" onClick=${() => nav.tab('home')}>Continue shopping</button>
+        </div>
       </div>
-      <div className="thumb-strip">${o.items.map((i) => html`<${Art} key=${i.pid + i.vi} art=${P[i.pid].art} bg=${P[i.pid].bg} />`)}</div>
-    </div>
-    <div className="bottom-bar col">
-      <button className="btn primary" onClick=${() => nav.go('orders', [['order', { oid: o.id }]])}>Track order</button>
-      <button className="btn text" onClick=${() => nav.tab('home')}>Continue shopping</button>
     </div>
   </div>`;
 }
@@ -1330,7 +1547,7 @@ function riderFrac(o, now) {
 const kmLeft = (frac) => ((1 - frac) * ROUTE_LEN * 0.006).toFixed(1);
 const MAP_BASE = (() => {
   const xs = [-200, 80, 150, 230, 300], ys = [-200, 120, 210, 300, 640];
-  let s = '<rect x="-300" y="-300" width="1000" height="1000" fill="#F3EFFB"/>';
+  let s = '<rect x="-300" y="-300" width="1000" height="1000" fill="#F1EEF5"/>';
   for (let i = 0; i < xs.length - 1; i++) for (let j = 0; j < ys.length - 1; j++) {
     const x0 = xs[i] + 10, x1 = xs[i + 1] - 10, y0 = ys[j] + 10, y1 = ys[j + 1] - 10;
     if (i === 1 && j === 2) { // park
@@ -1345,15 +1562,15 @@ const MAP_BASE = (() => {
     }
     const mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
     [[x0, y0, mx - 4, my - 4], [mx + 4, y0, x1, my - 4], [x0, my + 4, mx - 4, y1], [mx + 4, my + 4, x1, y1]].forEach(([a, b, c, d]) => {
-      if (c - a > 6 && d - b > 6) s += `<rect x="${a}" y="${b}" width="${c - a}" height="${d - b}" rx="3" fill="#E8E1F7"/>`;
+      if (c - a > 6 && d - b > 6) s += `<rect x="${a}" y="${b}" width="${c - a}" height="${d - b}" rx="3" fill="#E6E1EE"/>`;
     });
   }
   s += '<path d="M336 -300 C 316 40, 352 220, 322 640" fill="none" stroke="#CFE0F7" stroke-width="54"/>';
   s += '<path d="M336 -300 C 316 40, 352 220, 322 640" fill="none" stroke="#C2D6F4" stroke-width="2" stroke-dasharray="6 10"/>';
-  const road = (d, w) => `<path d="${d}" fill="none" stroke="#DDD3F2" stroke-width="${w + 3}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#FFFFFF" stroke-width="${w}" stroke-linecap="round"/>`;
+  const road = (d, w) => `<path d="${d}" fill="none" stroke="#DCD5E6" stroke-width="${w + 3}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#FFFFFF" stroke-width="${w}" stroke-linecap="round"/>`;
   s += road('M-300 120 H640', 14) + road('M230 -300 V640', 14) + road('M80 -300 V640', 12) + road('M-300 300 H300', 12);
   s += road('M150 120 V640', 8) + road('M-300 210 H300', 8) + road('M115 96 V120', 6) + road('M230 255 H290', 6);
-  const label = (x, y, t, rot, size) => `<text x="${x}" y="${y}" ${rot ? `transform="rotate(${rot} ${x} ${y})"` : ''} font-family="Inter, sans-serif" font-size="${size || 8}" fill="#8E8AB5" text-anchor="middle" paint-order="stroke" stroke="#F3EFFB" stroke-width="3">${t}</text>`;
+  const label = (x, y, t, rot, size) => `<text x="${x}" y="${y}" ${rot ? `transform="rotate(${rot} ${x} ${y})"` : ''} font-family="Inter, sans-serif" font-size="${size || 8}" fill="#857F9C" text-anchor="middle" paint-order="stroke" stroke="#F1EEF5" stroke-width="3">${t}</text>`;
   s += label(176, 116.5, 'Main Road') + label(226.5, 180, 'Riverside Road', -90) + label(115, 258, 'Park') + label(352, 120, 'Sabarmati River', -84, 9) + label(46, 300.5, 'Station Road');
   return s;
 })();
@@ -1425,26 +1642,26 @@ function TrackMap({ o, st, now, compact }) {
   return html`<div ref=${boxRef} className=${'track-map' + (compact ? ' compact' : '')} onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}>
     <svg ref=${svgRef} viewBox=${view.map((n) => n.toFixed(1)).join(' ')} preserveAspectRatio="xMidYMid slice" role="img" aria-label=${'Map. ' + label}>
       <g dangerouslySetInnerHTML=${{ __html: MAP_BASE }}></g>
-      <polyline points=${pts(MAP.route)} fill="none" stroke="#B9A6F5" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="0.1 9" />
-      ${out && html`<polyline points=${pts(done)} fill="none" stroke="#6842D8" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />`}
+      <polyline points=${pts(MAP.route)} fill="none" stroke="#B6AACB" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="0.1 9" />
+      ${out && html`<polyline points=${pts(done)} fill="none" stroke="#3F2470" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />`}
       <g>
-        <circle cx=${sx} cy=${sy} r="11" fill="#fff" stroke="#6842D8" strokeWidth="2.5" />
-        <${MapPinIcon} name="bag" size=${12} color="#6842D8" x=${sx} y=${sy} />
+        <circle cx=${sx} cy=${sy} r="11" fill="#fff" stroke="#3F2470" strokeWidth="2.5" />
+        <${MapPinIcon} name="bag" size=${12} color="#3F2470" x=${sx} y=${sy} />
         ${!compact && html`<text x=${sx} y=${sy - 17} className="map-label" textAnchor="middle">quickart store</text>`}
       </g>
       <g>
-        <circle className="map-pulse" cx=${hx} cy=${hy} r="10" fill="#6842D8" opacity=".35" />
-        <path d=${`M${hx} ${hy} l-10 -13 a13 13 0 1 1 20 0 z`} fill="#4921C9" stroke="#fff" strokeWidth="2" />
+        <circle className="map-pulse" cx=${hx} cy=${hy} r="10" fill="#3F2470" opacity=".35" />
+        <path d=${`M${hx} ${hy} l-10 -13 a13 13 0 1 1 20 0 z`} fill="#360348" stroke="#fff" strokeWidth="2" />
         <${MapPinIcon} name="home" size=${11} x=${hx} y=${hy - 21} />
         ${!compact && out && html`<g transform=${`translate(${hx} ${hy - 48})`}>
-          <rect x="-22" y="-11" width="44" height="20" rx="10" fill="#191747" />
+          <rect x="-22" y="-11" width="44" height="20" rx="10" fill="#1E1530" />
           <text x="0" y="3" className="map-eta" textAnchor="middle">${st.left} min</text>
         </g>`}
         ${!compact && !out && html`<text x=${hx} y=${hy + 14} className="map-label" textAnchor="middle">${o.address.label}</text>`}
       </g>
       <g className="map-rider" style=${{ transform: `translate(${rider[0].toFixed(2)}px, ${rider[1].toFixed(2)}px)` }}>
-        <ellipse cx="0" cy="12" rx="10" ry="3" fill="#191747" opacity=".15" />
-        <circle r="13" fill="#D94A9A" stroke="#fff" strokeWidth="3" />
+        <ellipse cx="0" cy="12" rx="10" ry="3" fill="#1E1530" opacity=".15" />
+        <circle r="13" fill="#B0407F" stroke="#fff" strokeWidth="3" />
         <${MapPinIcon} name="bike" size=${15} />
       </g>
     </svg>
@@ -1564,7 +1781,6 @@ function OrderDetail({ params }) {
   const tracking = live && st.key !== 'scheduled';
   const first = RIDER.name.split(' ')[0];
   const etaText = { placed: 'Order confirmed. Assigning a delivery partner.', packed: `Packed at the store. ${first} is picking it up.`, out: `${first} is on the way to you.` }[st.key];
-  const rate = (n) => { act((s) => { s.orders.find((y) => y.id === o.id).rating = n; }); toast(n >= 4 ? 'Thanks for rating your delivery' : 'Thanks. We will share this with the delivery team.'); };
   return html`<div className="screen-col">
     ${tracking ? html`<div className="track-hero">
       <${TrackMap} o=${o} st=${st} now=${now} />
@@ -1582,13 +1798,7 @@ function OrderDetail({ params }) {
       <${StageDots} idx=${st.idx} />
       <${RiderCard} st=${st} onCall=${() => setSheet('call')} onChat=${() => setSheet('chat')} />
       <p className="proto-note map-note">Map, rider and timings are simulated. A live app would use GPS from the rider's phone and a maps service.</p>`}
-      ${st.key === 'delivered' && html`<div className="rate card">
-        <b>${o.rating ? 'Thanks for your rating' : 'How was your delivery?'}</b>
-        <div className="stars" role="radiogroup" aria-label="Rate your delivery">
-          ${[1, 2, 3, 4, 5].map((n) => html`<button key=${n} role="radio" aria-checked=${o.rating === n} aria-label=${`${n} star${n > 1 ? 's' : ''}`} className=${'star-btn' + (o.rating >= n ? ' on' : '')} onClick=${() => rate(n)}>${I('star', { fill: o.rating >= n })}</button>`)}
-        </div>
-        <small>Delivered by ${RIDER.name} (sample)</small>
-      </div>`}
+      ${st.key === 'delivered' && html`<${RateOrder} o=${o} />`}
       ${st.key === 'cancelled' && html`<p className="notice bad">${I('info')} This order was cancelled${o.pay !== 'cod' ? `. ${inr(o.bill.total)} is being refunded to your ${PAYS[o.pay].label} within 3 to 5 working days` : ''}.</p>`}
       ${st.key === 'scheduled' && html`<p className="notice">${I('calendar')} Scheduled for ${SLOTS[o.slot]}. You can cancel until it is packed.</p>`}
       ${st.key !== 'cancelled' && st.key !== 'scheduled' && html`<ol className="timeline">
@@ -1771,6 +1981,31 @@ function Pricing() {
     </div></div>`;
 }
 
+/* Quick Art Wallet: balance, top-up and history (simulated money) */
+function WalletSheet({ need, onClose }) {
+  const { S, act, toast } = useApp();
+  const [amt, setAmt] = useState(need ? Math.ceil(need / 50) * 50 : 200);
+  const add = () => {
+    act((s) => { s.wallet.balance += amt; s.wallet.txns.unshift({ id: 't' + Date.now(), label: 'Added money', amt, at: Date.now() }); });
+    toast(`${inr(amt)} added to your wallet`);
+    if (need) onClose();
+  };
+  return html`<${Sheet} title="Quick Art Wallet" onClose=${onClose}>
+    <div className="wallet-card">
+      <span className="wc-label">${I('wallet')} Balance</span>
+      <b key=${S.wallet.balance} className="wc-amt">${inr(S.wallet.balance)}</b>
+      <small>Use it at checkout for one-tap payment</small>
+    </div>
+    ${need > 0 && html`<p className="notice">${I('info')} Add at least ${inr(need)} to pay for this order from your wallet.</p>`}
+    <h4 className="sheet-sub">Add money</h4>
+    <div className="chips wrap">${[100, 200, 500, 1000].concat(need && ![100, 200, 500, 1000].includes(Math.ceil(need / 50) * 50) ? [Math.ceil(need / 50) * 50] : []).map((a) => html`<button key=${a} className=${'chip' + (amt === a ? ' on' : '')} aria-pressed=${amt === a} onClick=${() => setAmt(a)}>+ ${inr(a)}</button>`)}</div>
+    <button className="btn primary" onClick=${add}>${I('pluscircle')} Add ${inr(amt)}</button>
+    <h4 className="sheet-sub">Recent activity</h4>
+    <ul className="wallet-txns">${S.wallet.txns.slice(0, 6).map((t) => html`<li key=${t.id}><span className=${'wt-ic' + (t.amt < 0 ? ' out' : '')}>${I(t.amt < 0 ? 'bag' : 'pluscircle')}</span><span><b>${t.label}</b><small>${dayTime(t.at)}</small></span><b className=${t.amt < 0 ? 'neg' : 'pos'}>${t.amt < 0 ? '−' : '+'} ${inr(Math.abs(t.amt))}</b></li>`)}</ul>
+    <p className="proto-note">Prototype: no real money is added or charged.</p>
+  <//>`;
+}
+
 /* ---------- Global sheets ---------- */
 function AddressSheet({ onClose }) {
   return html`<${Sheet} title="Deliver to" onClose=${onClose}><${AddressPicker} onPicked=${onClose} /><//>`;
@@ -1823,13 +2058,13 @@ function useWide() {
   }, []);
   return wide;
 }
-function BottomNav({ hidden }) {
+function BottomNav({ hidden, dark }) {
   const { tab, nav, S } = useApp();
   const now = useNow(5000);
   const live = S.orders.filter((o) => !['delivered', 'cancelled'].includes(orderStage(o, now).key)).length;
   const idx = Math.max(0, TABS.findIndex((t) => t.id === tab));
-  return html`<nav className=${'bnav' + (tab === 'explore' ? ' dark' : '')} aria-label="Main" aria-hidden=${hidden || undefined} style=${{ '--idx': idx }}>
-    <span className="bnav-brand" aria-hidden="true"><img className="bb-mark" src=${asset('brand/logo-mark.png')} alt="" /><img className="bb-word" src=${asset('brand/logo-wordmark.png')} alt="" /></span>
+  return html`<nav className=${'bnav' + (dark ? ' dark' : '')} aria-label="Main" aria-hidden=${hidden || undefined} style=${{ '--idx': idx }}>
+    <span className="bnav-brand" aria-hidden="true"><img className="bb-mark" src=${asset('brand/logo-q.png')} alt="" /><span className="bb-word wordmark">Quick Art</span></span>
     <div className="bnav-track">
       <span className="bnav-blob" aria-hidden="true"></span>
       ${TABS.map((t) => html`<button key=${t.id} className=${'bnav-item' + (tab === t.id ? ' on' : '') + (t.id === 'explore' ? ' is-explore' : '')} aria-current=${tab === t.id ? 'page' : undefined} onClick=${() => {
@@ -1861,6 +2096,7 @@ function App() {
   const [toastS, setToastS] = useState(null);
   const [sheet, setSheet] = useState(null);
   const [jump, setJump] = useState(null);
+  const [catSeg, setCatSeg] = useState(null);
   const tTimer = useRef();
   const toast = useCallback((msg, action, extra) => {
     clearTimeout(tTimer.current);
@@ -1873,7 +2109,7 @@ function App() {
     popN: (n) => setStack((s) => s.slice(0, -n)),
     replace: (name, params) => setStack((s) => [...s.slice(0, -1), mkRoute(name, params)]),
     reset: (routes) => setStack(routes.map(([n, p]) => mkRoute(n, p))),
-    tab: (t) => { setStack([]); setTab(t); setSheet(null); },
+    tab: (t, seg) => { setStack([]); setTab(t); setSheet(null); if (seg) setCatSeg({ seg, n: Date.now() }); },
     go: (t, routes) => { setTab(t); setStack(routes.map(([n, p]) => mkRoute(n, p))); },
   }), []);
 
@@ -1969,7 +2205,9 @@ function App() {
     const addr = s0.addresses.find((a) => a.id === s0.addressId) || s0.addresses[0];
     const id = 'QA' + String(Math.floor(20000 + Math.random() * 79999));
     act((s) => {
-      s.orders.unshift({ id, items, bill: billOf(items), address: addr, pay: s.pay, slot: s.slot, placedAt: Date.now(), eta: addr.eta, cancelled: false });
+      const bill = billOf(items);
+      s.orders.unshift({ id, items, bill, address: addr, pay: s.pay, slot: s.slot, placedAt: Date.now(), eta: addr.eta, cancelled: false });
+      if (s.pay === 'wallet') { s.wallet.balance -= bill.total; s.wallet.txns.unshift({ id: 't' + Date.now(), label: `Order #${id}`, amt: -bill.total, at: Date.now() }); }
       s.cart = {};
       s.slot = 'now';
     });
@@ -2017,24 +2255,30 @@ function App() {
 
   const app = {
     S, act, nav, tab, stack, cart, qty, setQty, addToCart, addMany, reorder, toggleSaved, viewProduct, proceed, buyNow,
-    toast, openSheet: setSheet, jump, clearJump: () => setJump(null), jumpToReel, placeOrder, resetAll, setStackDirect: setStack,
+    toast, openSheet: setSheet, catSeg, jump, clearJump: () => setJump(null), jumpToReel, placeOrder, resetAll, setStackDirect: setStack,
   };
   const top = stack[stack.length - 1];
   const darkTop = (!top && tab === 'explore') || (top && top.name === 'reels');
   const lightAuth = top && ['login', 'otp'].includes(top.name);
+  // The bottom navigation shows on every screen except sign-in and payment
+  const noNav = top && (['login', 'otp', 'paying'].includes(top.name) || (top.name === 'fields' && top.params.mode === 'onboard'));
+  const navOver = S.user.onboarded && stack.length > 0 && !noNav;
+  const BAR = { pdp: 'bar', checkout: 'bar', fields: 'bar', cart: 'bar-tall' };
+  const barCls = top && BAR[top.name] ? ' ' + BAR[top.name] : '';
 
   return html`<${Ctx.Provider} value=${app}>
     <div className="stage">
-      <div ref=${deviceRef} className=${'device' + (darkTop ? ' dark-top' : '') + (lightAuth ? ' auth-top-bg' : '')}>
+      <div ref=${deviceRef} className=${'device' + (darkTop ? ' dark-top' : '') + (lightAuth ? ' auth-top-bg' : '') + (navOver ? ' nav-over' : '') + barCls}>
         ${S.user.onboarded && html`<div className="tabs-layer">
           ${TABS.map((t) => html`<section key=${t.id} className=${'tab-screen tab-' + t.id + (tab === t.id ? '' : ' off')} aria-label=${t.label} aria-hidden=${stack.length > 0}><${t.C} active=${tab === t.id && stack.length === 0} /></section>`)}
-          <${BottomNav} hidden=${stack.length > 0 && !wide} />
         </div>`}
         ${stack.map((r, i) => {
           const C = SCREENS[r.name];
           return html`<div key=${r.k} className=${'stack-screen route-' + r.name + (r.name === 'reels' ? ' dark-screen' : '')} aria-hidden=${i < stack.length - 1}><${C} params=${r.params} /></div>`;
         })}
+        ${S.user.onboarded && html`<${BottomNav} hidden=${stack.length > 0 && !navOver && !wide} dark=${darkTop} />`}
         ${sheet && sheet.type === 'address' && html`<${AddressSheet} onClose=${() => setSheet(null)} />`}
+        ${sheet && sheet.type === 'wallet' && html`<${WalletSheet} need=${sheet.need} onClose=${() => setSheet(null)} />`}
         ${sheet && sheet.type === 'share' && html`<${ShareSheet} rid=${sheet.rid} onClose=${() => setSheet(null)} />`}
         ${sheet && sheet.type === 'help' && html`<${HelpChat} oid=${sheet.oid} onClose=${() => setSheet(null)} />`}
         <${Toast} t=${toastS} onDone=${() => setToastS(null)} />

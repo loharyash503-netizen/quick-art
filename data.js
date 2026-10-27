@@ -6,6 +6,14 @@ const asset = (p) => (window.QA_ASSETS && window.QA_ASSETS[p]) || p;
 
 /* ---------- Icons: Lucide v1.49 line icons (ISC licence), drawn with currentColor ---------- */
 const ICON_PATHS = {
+  wallet: '<path d=\"M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1\"/><path d=\"M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4\"/>',
+  camera: '<path d=\"M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z\"/><circle cx=\"12\" cy=\"13\" r=\"3\"/>',
+  imgplus: '<path d=\"M16 5h6\"/><path d=\"M19 2v6\"/><path d=\"M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5\"/><path d=\"m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21\"/><circle cx=\"9\" cy=\"9\" r=\"2\"/>',
+  thumb: '<path d=\"M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z\"/><path d=\"M7 10v12\"/>',
+  verified: '<path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\"/><path d=\"m16 9-5.5 5.5L8 12\"/>',
+  store: '<path d=\"M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5\"/><path d=\"M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.77-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244\"/><path d=\"M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05\"/>',
+  pluscircle: '<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M8 12h8\"/><path d=\"M12 8v8\"/>',
+  homebox: '<path d=\"M3 10.5 12 3l9 7.5\"/><path d=\"M5 9.2V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.2\"/><rect x=\"8.5\" y=\"12\" width=\"7\" height=\"6\" rx=\"1\"/><path d=\"M12 12v2.5\"/>',
   phone: '<path d=\"M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384\"/>',
   locate: '<line x1=\"2\" x2=\"5\" y1=\"12\" y2=\"12\"/><line x1=\"19\" x2=\"22\" y1=\"12\" y2=\"12\"/><line x1=\"12\" x2=\"12\" y1=\"2\" y2=\"5\"/><line x1=\"12\" x2=\"12\" y1=\"19\" y2=\"22\"/><circle cx=\"12\" cy=\"12\" r=\"7\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>',
   nav: '<polygon points=\"3 11 22 2 13 21 11 13 3 11\"/>',
@@ -221,29 +229,29 @@ function artSvg(art) {
 
 /* ---------- Taxonomy ---------- */
 const CATS = [
-  { id: 'paints', name: 'Paints', icon: 'palette', bg: '#F0E9FF' },
-  { id: 'pencils', name: 'Pencils & Charcoal', short: 'Pencils', icon: 'pencil', bg: '#F0E9FF' },
-  { id: 'markers', name: 'Markers & Pens', short: 'Markers', icon: 'crayon', bg: '#F0E9FF' },
-  { id: 'paper', name: 'Sketchbooks & Paper', short: 'Sketch', icon: 'ledger', bg: '#F0E9FF' },
-  { id: 'brushes', name: 'Brushes', icon: 'brush', bg: '#F0E9FF' },
-  { id: 'canvas', name: 'Canvas & Palettes', short: 'Canvas', icon: 'frame', bg: '#F0E9FF' },
-  { id: 'model', name: 'Model-making', short: 'Models', icon: 'package', bg: '#F0E9FF' },
-  { id: 'cutting', name: 'Cutting Tools', short: 'Cutting', icon: 'scissors', bg: '#F0E9FF' },
-  { id: 'drafting', name: 'Drafting', icon: 'ruler', bg: '#F0E9FF' },
-  { id: 'fashion', name: 'Fashion Tools', short: 'Fashion', icon: 'thread', bg: '#F0E9FF' },
-  { id: 'studio', name: 'Studio & Workshop', short: 'Studio', icon: 'notepad', bg: '#F0E9FF' },
-  { id: 'craft', name: 'Craft & Glue', short: 'Craft', icon: 'yarn', bg: '#F0E9FF' },
+  { id: 'paints', name: 'Paints', icon: 'palette', bg: '#EEEAF4' },
+  { id: 'pencils', name: 'Pencils & Charcoal', short: 'Pencils', icon: 'pencil', bg: '#EEEAF4' },
+  { id: 'markers', name: 'Markers & Pens', short: 'Markers', icon: 'crayon', bg: '#EEEAF4' },
+  { id: 'paper', name: 'Sketchbooks & Paper', short: 'Sketch', icon: 'ledger', bg: '#EEEAF4' },
+  { id: 'brushes', name: 'Brushes', icon: 'brush', bg: '#EEEAF4' },
+  { id: 'canvas', name: 'Canvas & Palettes', short: 'Canvas', icon: 'frame', bg: '#EEEAF4' },
+  { id: 'model', name: 'Model-making', short: 'Models', icon: 'package', bg: '#EEEAF4' },
+  { id: 'cutting', name: 'Cutting Tools', short: 'Cutting', icon: 'scissors', bg: '#EEEAF4' },
+  { id: 'drafting', name: 'Drafting', icon: 'ruler', bg: '#EEEAF4' },
+  { id: 'fashion', name: 'Fashion Tools', short: 'Fashion', icon: 'thread', bg: '#EEEAF4' },
+  { id: 'studio', name: 'Studio & Workshop', short: 'Studio', icon: 'notepad', bg: '#EEEAF4' },
+  { id: 'craft', name: 'Craft & Glue', short: 'Craft', icon: 'yarn', bg: '#EEEAF4' },
 ];
 
 const FIELDS = [
-  { id: 'graphic', name: 'Graphic Design', icon: 'pen', bg: '#F0E9FF', blurb: 'Markers, liners, lettering', kit: ['p13', 'p14', 'p19', 'p18', 'p15', 'p10'] },
-  { id: 'fashion', name: 'Fashion Design', icon: 'dress', bg: '#F0E9FF', blurb: 'Croquis, fabric markers, measuring', kit: ['p22', 'p16', 'p33', 'p32', 'p34', 'p10', 'p9'] },
-  { id: 'interior', name: 'Interior Design', icon: 'couch', bg: '#F0E9FF', blurb: 'Drafting, scale, model boards', kit: ['p30', 'p31', 'p23', 'p26', 'p27', 'p28', 'p14'] },
-  { id: 'product', name: 'Product Design', icon: 'puzzle', bg: '#F0E9FF', blurb: 'Ideation sketching, mock-ups', kit: ['p19', 'p13', 'p35', 'p20', 'p26', 'p27', 'p28', 'p32'] },
-  { id: 'arch', name: 'Architecture', icon: 'building', bg: '#F0E9FF', blurb: 'Technical pens, sheets, models', kit: ['p30', 'p31', 'p23', 'p26', 'p27', 'p28', 'p9'] },
-  { id: 'fine', name: 'Fine Arts', icon: 'palette', bg: '#F0E9FF', blurb: 'Paints, brushes, canvas', kit: ['p1', 'p3', 'p6', 'p24', 'p25', 'p5', 'p11', 'p21'] },
-  { id: 'illus', name: 'Illustration', icon: 'writing', bg: '#F0E9FF', blurb: 'Inking, watercolour, markers', kit: ['p15', 'p13', 'p8', 'p21', 'p3', 'p10', 'p19'] },
-  { id: 'craft', name: 'Craft & DIY', icon: 'yarn', bg: '#F0E9FF', blurb: 'Glue, cutting, colours', kit: ['p29', 'p27', 'p16', 'p2', 'p25', 'p7', 'p26'] },
+  { id: 'graphic', name: 'Graphic Design', icon: 'pen', bg: '#EEEAF4', blurb: 'Markers, liners, lettering', kit: ['p13', 'p14', 'p19', 'p45', 'p47', 'p15', 'p10'] },
+  { id: 'fashion', name: 'Fashion Design', icon: 'dress', bg: '#EEEAF4', blurb: 'Croquis, fabric markers, measuring', kit: ['p22', 'p16', 'p33', 'p32', 'p34', 'p10', 'p9'] },
+  { id: 'interior', name: 'Interior Design', icon: 'couch', bg: '#EEEAF4', blurb: 'Drafting, scale, model boards', kit: ['p30', 'p31', 'p23', 'p26', 'p27', 'p28', 'p14'] },
+  { id: 'product', name: 'Product Design', icon: 'puzzle', bg: '#EEEAF4', blurb: 'Ideation sketching, mock-ups', kit: ['p19', 'p13', 'p35', 'p20', 'p26', 'p27', 'p28', 'p32'] },
+  { id: 'arch', name: 'Architecture', icon: 'building', bg: '#EEEAF4', blurb: 'Technical pens, sheets, models', kit: ['p30', 'p31', 'p23', 'p41', 'p26', 'p27', 'p28', 'p38'] },
+  { id: 'fine', name: 'Fine Arts', icon: 'palette', bg: '#EEEAF4', blurb: 'Paints, brushes, canvas', kit: ['p1', 'p3', 'p6', 'p24', 'p43', 'p25', 'p5', 'p11', 'p21'] },
+  { id: 'illus', name: 'Illustration', icon: 'writing', bg: '#EEEAF4', blurb: 'Inking, watercolour, markers', kit: ['p15', 'p13', 'p8', 'p21', 'p3', 'p10', 'p19'] },
+  { id: 'craft', name: 'Craft & DIY', icon: 'yarn', bg: '#EEEAF4', blurb: 'Glue, cutting, colours', kit: ['p29', 'p48', 'p42', 'p27', 'p16', 'p2', 'p26'] },
 ];
 
 /* ---------- Catalogue ---------- */
@@ -324,6 +332,28 @@ const RAW = [
     'Desk-size dry-erase board for quick flows and sketch reviews.', { Size: 'A3', Includes: '1 marker' }],
   ['p37', 'Mobile UI Sketching Stencil', 'quickart Basics', 'studio', 'Stencils', { kind: 'stencil' }, [['Mobile, 1:1', 299, 350, 12]], 4.4, 163,
     'Steel-edge stencil with phone frames, icons and common UI controls at 1:1.', { Includes: 'Frames, icons, controls' }],
+  ['p38', 'Platinum Extra Dark Pencils, Pack of 10', 'Apsara', 'pencils', 'Graphite', { kind: 'pencils', grey: true, box: '#B71C1C' }, [['Pack of 10', 50, 60, 40], ['Pack of 20', 95, 120, 25]], 4.6, 8820,
+    'Dark, smooth graphite that resists breaking. A favourite for school, sketching and exam sheets.', { Grade: 'Extra dark', Includes: 'Free eraser and sharpener' }],
+  ['p39', 'Non-Dust Erasers, Pack of 20', 'Apsara', 'pencils', 'Erasers', { kind: 'eraser', col: '#C62828' }, [['Pack of 20', 50, 60, 50]], 4.5, 6100,
+    'Soft erasers that lift graphite cleanly and roll the dust into one strand instead of crumbs.', { Material: 'Polymer', Dust: 'Non-dust, single strand' }],
+  ['p40', '621 HB Pencils, Pack of 10', 'Natraj', 'pencils', 'Graphite', { kind: 'pencils', grey: true, box: '#F9A825' }, [['Pack of 10', 45, 50, 60]], 4.5, 9400,
+    'The classic striped HB pencil with an eraser tip. Smooth, even lines for writing and rough sketches.', { Grade: 'HB', Tip: 'Eraser tipped' }],
+  ['p41', 'Geometry Box, Full Set', 'Natraj', 'drafting', 'Geometry sets', { kind: 'ruler' }, [['Full set', 120, 140, 25]], 4.3, 3150,
+    'Metal box with compass, divider, protractor, two set squares, ruler, pencil, eraser and sharpener.', { Includes: '9 instruments', Box: 'Metal, hinged' }],
+  ['p42', 'Wax Crayons', 'Doms', 'pencils', 'Crayons & pastels', { kind: 'chalk' }, [['24 shades', 99, 110, 30], ['12 shades', 55, 60, 40]], 4.4, 5230,
+    'Bright, non-toxic wax crayons that glide smoothly and do not snap easily. Great for colouring and texture rubbings.', { Type: 'Wax crayons', Safety: 'Non-toxic' }],
+  ['p43', 'Oil Pastels', 'Kokuyo Camlin', 'pencils', 'Crayons & pastels', { kind: 'chalk' }, [['50 shades', 210, 240, 18], ['25 shades', 110, 125, 26]], 4.6, 4120,
+    'Creamy, blendable oil pastels with strong colour. Layer, smudge and scratch for rich textures.', { Type: 'Soft oil pastels', Blending: 'Finger or tortillon' }],
+  ['p44', 'Water Colour Cakes, 12 Shades', 'Doms', 'paints', 'Watercolour', { kind: 'watercolor', box: '#ffffff' }, [['12 shades', 60, 70, 35]], 4.2, 2780,
+    'Bright watercolour cakes with a brush, sized for school projects and quick colour studies.', { Type: 'Student watercolour', Includes: 'Round brush' }],
+  ['p45', 'Connector Sketch Pens, 20 Shades', 'Faber-Castell', 'markers', 'Sketch pens', { kind: 'markers' }, [['20 shades', 200, 230, 22], ['10 shades', 105, 120, 30]], 4.7, 7340,
+    'Washable felt-tip pens whose caps click together. Bright, even ink for colouring, charts and doodles.', { Ink: 'Washable', Caps: 'Click to connect' }],
+  ['p46', 'Drawing Book, 36 Pages', 'Classmate', 'paper', 'Sketchbooks', { kind: 'sketchbook', cover: '#2A6F97' }, [['A4', 90, 100, 45], ['A3', 150, 170, 20]], 4.4, 3920,
+    'Thick white drawing pages for pencil, crayon and sketch pen work. Spiral bound to lie flat.', { Pages: '36', Binding: 'Spiral' }],
+  ['p47', 'Highlighters, Pack of 5', 'Luxor', 'markers', 'Highlighters', { kind: 'markers', cols: ['#FFEB3B', '#76FF03', '#FF4081', '#FF9100', '#40C4FF'] }, [['5 colours', 120, 140, 30]], 4.5, 4410,
+    'Fluorescent chisel-tip highlighters that do not smear printed text. Two line widths in one tip.', { Tip: 'Chisel, 1 to 5 mm', Ink: 'Water-based fluorescent' }],
+  ['p48', 'Fevistik Glue Stick, 15 g, Pack of 2', 'Pidilite', 'craft', 'Glue', { kind: 'glue' }, [['Pack of 2', 60, 70, 50]], 4.6, 6900,
+    'Mess-free glue stick for paper, card and photos. Twist up, apply and press.', { Size: '15 g each', Dries: 'Clear' }],
 ];
 
 const PRODUCTS = RAW.map(([id, name, brand, cat, sub, art, v, rating, reviews, desc, specs, dv]) => ({
@@ -335,10 +365,42 @@ PRODUCTS.forEach((p) => {
   p.fields = FIELDS.filter((f) => f.kit.includes(p.id)).map((f) => f.id);
   p.bg = (CATS.find((c) => c.id === p.cat) || {}).bg || '#F4F2F7';
 });
-// Studio product photos (AI-generated, unbranded) for all 37 products. A product without a photo falls back to its drawn illustration.
-const PHOTOS = new Set(Array.from({ length: 37 }, (_, i) => 'p' + (i + 1)));
+// Studio product photos (AI-generated, unbranded) for all 48 products. A product without a photo falls back to its drawn illustration.
+const PHOTOS = new Set(Array.from({ length: 48 }, (_, i) => 'p' + (i + 1)));
 PRODUCTS.forEach((p) => { if (PHOTOS.has(p.id)) p.art = { ...p.art, photo: 'img/' + p.id + '.jpg' }; });
 const BRANDS = [...new Set(PRODUCTS.map((p) => p.brand))].sort();
+/* Brands shown in "Shop by brand". Monogram tiles only: no brand logos are reproduced. */
+const BRAND_INFO = [
+  ['Apsara', 'Pencils, erasers'], ['Natraj', 'Pencils, geometry'], ['Doms', 'Crayons, colours'], ['Kokuyo Camlin', 'Paints, pastels'],
+  ['Faber-Castell', 'Pencils, sketch pens'], ['Classmate', 'Drawing books'], ['Staedtler', 'Pens, drafting'], ['Luxor', 'Highlighters'],
+  ['Pidilite', 'Glue, craft'], ['Brustro', 'Artist supplies'], ['Winsor & Newton', 'Watercolour'], ['Sakura', 'Inking, brush pens'],
+].map(([name, tag], i) => ({ name, tag, short: name === 'Kokuyo Camlin' ? 'Camlin' : name, mono: monogram(name === 'Kokuyo Camlin' ? 'Camlin' : name), hue: i }));
+function monogram(n) {
+  const w = n.replace(/[^A-Za-z ]/g, ' ').split(/\s+/).filter(Boolean);
+  return w.length > 1 ? (w[0][0] + w[1][0]).toUpperCase() : w[0].slice(0, 2);
+}
+
+/* Sample customer reviews (prototype data), generated per product so every page has some. */
+const REVIEWERS = ['Ananya S.', 'Rohan M.', 'Priya K.', 'Kabir J.', 'Meera T.', 'Arjun P.', 'Sneha R.', 'Dev V.', 'Isha N.', 'Yuvraj B.'];
+const REVIEW_TEXT = {
+  5: [['Exactly what I needed', 'Arrived in 11 minutes before my studio class. Quality is great for the price and the colours are true to the photos.'], ['Worth it', 'Used it for my jury submission. Smooth, consistent and nothing was damaged in delivery.']],
+  4: [['Good value', 'Does the job well. Packaging could be a little better but the product itself is solid.'], ['Nice quality', 'Better than what I get at the shop near college. Would buy again.']],
+  3: [['Okay for practice', 'Fine for rough work and practice sheets. For final pieces I would pick a higher grade.']],
+};
+function reviewsFor(p) {
+  let h = 0;
+  for (const ch of p.id) h = (h * 31 + ch.charCodeAt(0)) % 9973;
+  const rs = p.rating >= 4.6 ? [5, 5, 4, 5] : p.rating >= 4.3 ? [5, 4, 4, 3] : [4, 3, 5, 4];
+  return rs.map((r, i) => {
+    const pool = REVIEW_TEXT[r], t = pool[(h + i) % pool.length];
+    return { id: p.id + '-r' + i, name: REVIEWERS[(h + i * 3) % REVIEWERS.length], rating: r, title: t[0], text: t[1], days: 2 + ((h + i * 7) % 40), photo: i < 2 && !!p.art.photo, flip: i === 1, helpful: 3 + ((h + i * 5) % 30) };
+  });
+}
+function ratingBars(p) {
+  const r = p.rating, five = Math.round(Math.min(.85, Math.max(.4, (r - 3.6) * .62)) * 100);
+  const four = Math.round((100 - five) * .62), three = Math.round((100 - five - four) * .55), two = Math.round((100 - five - four - three) * .55);
+  return [five, four, three, two, Math.max(0, 100 - five - four - three - two)];
+}
 
 /* ---------- Explore reels (simulated demo clips) ---------- */
 const REELS = [
