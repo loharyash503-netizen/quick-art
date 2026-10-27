@@ -6,6 +6,9 @@ const asset = (p) => (window.QA_ASSETS && window.QA_ASSETS[p]) || p;
 
 /* ---------- Icons: Lucide v1.49 line icons (ISC licence), drawn with currentColor ---------- */
 const ICON_PATHS = {
+  link: '<path d=\"M9 17H7A5 5 0 0 1 7 7h2\"/><path d=\"M15 7h2a5 5 0 1 1 0 10h-2\"/><line x1=\"8\" x2=\"16\" y1=\"12\" y2=\"12\"/>',
+  wave: '<path d=\"M2 10v3\"/><path d=\"M6 6v11\"/><path d=\"M10 3v18\"/><path d=\"M14 8v7\"/><path d=\"M18 5v13\"/><path d=\"M22 10v3\"/>',
+  reelcam: '<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><circle cx=\"17.5\" cy=\"6.5\" r=\".6\" fill=\"currentColor\"/>',
   wallet: '<path d=\"M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1\"/><path d=\"M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4\"/>',
   camera: '<path d=\"M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z\"/><circle cx=\"12\" cy=\"13\" r=\"3\"/>',
   imgplus: '<path d=\"M16 5h6\"/><path d=\"M19 2v6\"/><path d=\"M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5\"/><path d=\"m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21\"/><circle cx=\"9\" cy=\"9\" r=\"2\"/>',
@@ -244,13 +247,13 @@ const CATS = [
 ];
 
 const FIELDS = [
-  { id: 'graphic', name: 'Graphic Design', icon: 'pen', bg: '#EEEAF4', blurb: 'Markers, liners, lettering', kit: ['p13', 'p14', 'p19', 'p45', 'p47', 'p15', 'p10'] },
+  { id: 'graphic', name: 'Graphic Design', icon: 'pen', bg: '#EEEAF4', blurb: 'Markers, liners, lettering', kit: ['p13', 'p14', 'p19', 'p45', 'p47', 'p50', 'p15', 'p10'] },
   { id: 'fashion', name: 'Fashion Design', icon: 'dress', bg: '#EEEAF4', blurb: 'Croquis, fabric markers, measuring', kit: ['p22', 'p16', 'p33', 'p32', 'p34', 'p10', 'p9'] },
   { id: 'interior', name: 'Interior Design', icon: 'couch', bg: '#EEEAF4', blurb: 'Drafting, scale, model boards', kit: ['p30', 'p31', 'p23', 'p26', 'p27', 'p28', 'p14'] },
   { id: 'product', name: 'Product Design', icon: 'puzzle', bg: '#EEEAF4', blurb: 'Ideation sketching, mock-ups', kit: ['p19', 'p13', 'p35', 'p20', 'p26', 'p27', 'p28', 'p32'] },
   { id: 'arch', name: 'Architecture', icon: 'building', bg: '#EEEAF4', blurb: 'Technical pens, sheets, models', kit: ['p30', 'p31', 'p23', 'p41', 'p26', 'p27', 'p28', 'p38'] },
   { id: 'fine', name: 'Fine Arts', icon: 'palette', bg: '#EEEAF4', blurb: 'Paints, brushes, canvas', kit: ['p1', 'p3', 'p6', 'p24', 'p43', 'p25', 'p5', 'p11', 'p21'] },
-  { id: 'illus', name: 'Illustration', icon: 'writing', bg: '#EEEAF4', blurb: 'Inking, watercolour, markers', kit: ['p15', 'p13', 'p8', 'p21', 'p3', 'p10', 'p19'] },
+  { id: 'illus', name: 'Illustration', icon: 'writing', bg: '#EEEAF4', blurb: 'Inking, watercolour, markers', kit: ['p15', 'p13', 'p8', 'p21', 'p3', 'p49', 'p10', 'p19'] },
   { id: 'craft', name: 'Craft & DIY', icon: 'yarn', bg: '#EEEAF4', blurb: 'Glue, cutting, colours', kit: ['p29', 'p48', 'p42', 'p27', 'p16', 'p2', 'p26'] },
 ];
 
@@ -354,6 +357,10 @@ const RAW = [
     'Fluorescent chisel-tip highlighters that do not smear printed text. Two line widths in one tip.', { Tip: 'Chisel, 1 to 5 mm', Ink: 'Water-based fluorescent' }],
   ['p48', 'Fevistik Glue Stick, 15 g, Pack of 2', 'Pidilite', 'craft', 'Glue', { kind: 'glue' }, [['Pack of 2', 60, 70, 50]], 4.6, 6900,
     'Mess-free glue stick for paper, card and photos. Twist up, apply and press.', { Size: '15 g each', Dries: 'Clear' }],
+  ['p49', 'Triangular Colour Pencils, 24 Shades', 'Faber-Castell', 'pencils', 'Colour', { kind: 'pencils' }, [['24 shades', 299, 345, 28], ['12 shades', 160, 185, 36]], 4.7, 6420,
+    'Bright, break-resistant colour pencils with a triangular grip that is easy on small hands and long sessions.', { Shape: 'Triangular, dotted grip', Lead: 'Break resistant' }],
+  ['p50', 'Poster Colours, 10 Shades', 'Kokuyo Camlin', 'paints', 'Poster colours', { kind: 'watercolor' }, [['10 x 15 ml', 140, 160, 34]], 4.5, 5180,
+    'Smooth, opaque poster colours that dry to an even matte finish. Ideal for charts, posters and flat colour work.', { Finish: 'Matte, opaque', Pack: '10 jars x 15 ml' }],
 ];
 
 const PRODUCTS = RAW.map(([id, name, brand, cat, sub, art, v, rating, reviews, desc, specs, dv]) => ({
@@ -365,8 +372,8 @@ PRODUCTS.forEach((p) => {
   p.fields = FIELDS.filter((f) => f.kit.includes(p.id)).map((f) => f.id);
   p.bg = (CATS.find((c) => c.id === p.cat) || {}).bg || '#F4F2F7';
 });
-// Studio product photos (AI-generated, unbranded) for all 48 products. A product without a photo falls back to its drawn illustration.
-const PHOTOS = new Set(Array.from({ length: 48 }, (_, i) => 'p' + (i + 1)));
+// Studio product photos (AI-generated, unbranded) for all 50 products. A product without a photo falls back to its drawn illustration.
+const PHOTOS = new Set(Array.from({ length: 50 }, (_, i) => 'p' + (i + 1)));
 PRODUCTS.forEach((p) => { if (PHOTOS.has(p.id)) p.art = { ...p.art, photo: 'img/' + p.id + '.jpg' }; });
 const BRANDS = [...new Set(PRODUCTS.map((p) => p.brand))].sort();
 /* Brands shown in "Shop by brand". Monogram tiles only: no brand logos are reproduced. */
@@ -413,6 +420,12 @@ const REELS = [
   { id: 'r7', scene: 'tape', title: 'Measuring for your first croquis-to-pattern project', creator: 'studio.tanvi', fields: ['fashion'], tags: ['studio'], products: ['p33', 'p22', 'p32'], likes: 2760, bg: '#F6E3EC' },
   { id: 'r8', scene: 'sketch', title: 'Hatching tones from 8B down to 2H', creator: 'sketch.daily', fields: ['fine', 'illus', 'arch'], tags: ['drawing'], products: ['p9', 'p19'], likes: 21800, bg: '#FBFAF6' },
   { id: 'r9', scene: 'swatch', title: 'Swatching all 24 shades before you buy', creator: 'colourcheck', fields: ['fine', 'craft'], tags: ['painting'], products: ['p1', 'p2'], likes: 9640, bg: '#FFFFFF' },
+  { id: 'r10', scene: 'pour', title: 'Acrylic pour: cells in three colours on canvas', creator: 'pour.with.ira', fields: ['fine', 'craft'], tags: ['painting'], products: ['p2', 'p24', 'p25'], likes: 18300, bg: '#1E1530' },
+  { id: 'r11', scene: 'landscape', title: 'Sunset landscape in oils in 60 seconds', creator: 'oil.and.easel', fields: ['fine'], tags: ['painting'], products: ['p5', 'p24', 'p7'], likes: 26400, bg: '#F6E7D8' },
+  { id: 'r12', scene: 'knife', title: 'Palette knife texture with heavy acrylic', creator: 'texture.talks', fields: ['fine', 'craft'], tags: ['painting'], products: ['p25', 'p1', 'p24'], likes: 11200, bg: '#F4F1EA' },
+  { id: 'r13', scene: 'wheel', title: 'Mix a full colour wheel from five poster colours', creator: 'colourtheory.in', fields: ['graphic', 'fine', 'illus'], tags: ['painting'], products: ['p50', 'p6'], likes: 9870, bg: '#FBFAFC' },
+  { id: 'r14', scene: 'flowers', title: 'Gouache flowers for your sketchbook', creator: 'petals.and.paint', fields: ['illus', 'fine'], tags: ['painting'], products: ['p50', 'p44', 'p19'], likes: 14600, bg: '#EEF3F7' },
+  { id: 'r15', scene: 'wash', title: 'Wet-on-wet sky wash, no hard edges', creator: 'wetonwet.studio', fields: ['fine', 'illus'], tags: ['painting'], products: ['p3', 'p21', 'p8'], likes: 12900, bg: '#F7F6F2' },
 ];
 const R = Object.fromEntries(REELS.map((r) => [r.id, r]));
 
@@ -482,4 +495,87 @@ const SCENES = {
     }
     return `<rect width="360" height="640" fill="#fff"/>${s}`;
   },
+  pour: () => {
+    const cells = [[110, 210, 70, '#47799A'], [240, 260, 60, '#B0407F'], [150, 360, 80, '#E8B84A'], [250, 420, 55, '#7FA6BF'], [100, 480, 50, '#F4F1EA'], [200, 300, 30, '#F4F1EA'], [170, 440, 25, '#F4F1EA']];
+    return `<rect width="360" height="640" fill="#1E1530"/><rect x="40" y="140" width="280" height="380" rx="6" fill="#2A1B3D"/>` +
+      cells.map(([x, y, r, c], i) => `<circle class="s-bloom" style="--d:${i * 0.35}s" cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity=".92"/><circle class="s-bloom" style="--d:${i * 0.35 + 0.2}s" cx="${x + 8}" cy="${y - 6}" r="${r * 0.35}" fill="#fff" opacity=".35"/>`).join('');
+  },
+  landscape: () => `<rect width="360" height="640" fill="#F6E7D8"/>
+    <rect x="30" y="150" width="300" height="340" rx="4" fill="#FCE3C4"/>
+    <circle class="s-pop" style="--d:.2s" cx="230" cy="260" r="34" fill="#F29E4C"/>
+    <path class="s-dr" style="--d:.6s" pathLength="1" d="M30 360 Q 110 300 180 350 T 330 330" stroke="#B0407F" stroke-width="44" fill="none" opacity=".75"/>
+    <path class="s-dr" style="--d:1.3s" pathLength="1" d="M30 420 Q 120 370 200 410 T 330 400" stroke="#425982" stroke-width="56" fill="none" opacity=".85"/>
+    <path class="s-dr" style="--d:2s" pathLength="1" d="M30 470 Q 150 440 330 470" stroke="#360348" stroke-width="40" fill="none"/>`,
+  knife: () => {
+    let s = '<rect width="360" height="640" fill="#F4F1EA"/><rect x="40" y="150" width="280" height="340" fill="#fff"/>';
+    const cols = ['#47799A', '#7FA6BF', '#B0407F', '#E8B84A', '#425982', '#F4F1EA'];
+    for (let i = 0; i < 9; i++) s += `<rect class="s-grow" style="--d:${i * 0.25}s; animation-delay:calc(var(--d) - 2.4s)" x="${55 + (i % 3) * 18}" y="${165 + i * 34}" width="${170 + (i % 4) * 22}" height="30" rx="8" fill="${cols[i % cols.length]}" opacity=".9"/>`;
+    return s;
+  },
+  wheel: () => {
+    const cols = ['#E63946', '#F4892C', '#F9C74F', '#90BE6D', '#43AA8B', '#2A9D8F', '#5FB3E6', '#277DA1', '#425982', '#8E44AD', '#B0407F', '#F15BB5'];
+    let s = '<rect width="360" height="640" fill="#FBFAFC"/>';
+    cols.forEach((c, i) => {
+      const a0 = (i / 12) * Math.PI * 2 - Math.PI / 2, a1 = ((i + 1) / 12) * Math.PI * 2 - Math.PI / 2, r = 120, cx = 180, cy = 320;
+      s += `<path class="s-pop" style="--d:${i * 0.15}s" d="M${cx} ${cy} L${(cx + r * Math.cos(a0)).toFixed(1)} ${(cy + r * Math.sin(a0)).toFixed(1)} A${r} ${r} 0 0 1 ${(cx + r * Math.cos(a1)).toFixed(1)} ${(cy + r * Math.sin(a1)).toFixed(1)} Z" fill="${c}" stroke="#fff" stroke-width="3"/>`;
+    });
+    return s + '<circle cx="180" cy="320" r="38" fill="#fff"/>';
+  },
+  flowers: () => {
+    let s = '<rect width="360" height="640" fill="#EEF3F7"/><rect x="40" y="150" width="280" height="350" rx="4" fill="#fff"/>';
+    [[130, 260, '#B0407F'], [230, 300, '#E8B84A'], [160, 390, '#47799A']].forEach(([x, y, c], f) => {
+      s += `<path class="s-dr" style="--d:${f * 0.8}s" pathLength="1" d="M${x} ${y + 20} Q ${x - 10} ${y + 90} ${x + 6} ${y + 150}" stroke="#43AA8B" stroke-width="5" fill="none"/>`;
+      for (let p = 0; p < 6; p++) {
+        const a = (p / 6) * Math.PI * 2;
+        s += `<ellipse class="s-pop" style="--d:${f * 0.8 + 0.3 + p * 0.08}s" cx="${(x + Math.cos(a) * 20).toFixed(1)}" cy="${(y + Math.sin(a) * 20).toFixed(1)}" rx="16" ry="10" transform="rotate(${(a * 180) / Math.PI} ${(x + Math.cos(a) * 20).toFixed(1)} ${(y + Math.sin(a) * 20).toFixed(1)})" fill="${c}" opacity=".85"/>`;
+      }
+      s += `<circle class="s-pop" style="--d:${f * 0.8 + 0.9}s" cx="${x}" cy="${y}" r="9" fill="#F9C74F"/>`;
+    });
+    return s;
+  },
+  wash: () => {
+    let s = '<rect width="360" height="640" fill="#F7F6F2"/><defs><filter id="wwash"><feGaussianBlur stdDeviation="10"/></filter></defs><g filter="url(#wwash)">';
+    ['#7FA6BF', '#9DB8CF', '#C7B6D9', '#E9C4CF', '#F6D9B8'].forEach((c, i) => (s += `<rect class="s-grow" style="--d:${i * 0.3}s" x="20" y="${150 + i * 64}" width="320" height="90" fill="${c}" opacity=".85"/>`));
+    return s + '</g>';
+  },
 };
+
+/* Instagram art reels (sample). A live version would read the user's saved and liked reels through
+   Meta's Instagram API with their permission; here the feed is a fixed sample. */
+const INSTA_REELS = [
+  { id: 'ig1', scene: 'wash', creator: 'aqua.journal', caption: 'Soft sky wash before the city sketch #watercolour #urbansketching', tags: ['Watercolour', 'Cold-press paper', 'Water brush'], products: ['p3', 'p21', 'p8'] },
+  { id: 'ig2', scene: 'markers', creator: 'render.daily', caption: 'Sneaker render with three greys and one pop colour #markerart #productdesign', tags: ['Alcohol markers', 'Marker paper', 'Fineliner'], products: ['p13', 'p22', 'p14'] },
+  { id: 'ig3', scene: 'pour', creator: 'pourpanda', caption: 'First acrylic pour, cells everywhere! #acrylicpour #fluidart', tags: ['Acrylic paint', 'Canvas', 'Palette'], products: ['p2', 'p24', 'p25'] },
+  { id: 'ig4', scene: 'sketch', creator: 'graphite.ghost', caption: 'Portrait study, 8B for the shadows #pencilsketch #portrait', tags: ['Graphite pencils', 'Sketchbook', 'Eraser'], products: ['p9', 'p38', 'p19', 'p39'] },
+  { id: 'ig5', scene: 'flowers', creator: 'bloom.and.brush', caption: 'Gouache florals for my journal #gouache #botanicalart', tags: ['Poster colours', 'Round brush', 'Sketchbook'], products: ['p50', 'p6', 'p46'] },
+  { id: 'ig6', scene: 'cut', creator: 'studio.models', caption: 'Pavilion model, cut in one evening #architecturemodel #foamboard', tags: ['Foam board', 'Cutter', 'Cutting mat'], products: ['p26', 'p27', 'p28'] },
+];
+/* Words in a caption or hashtag mapped to products, for "Paste a caption" */
+const MATERIAL_WORDS = [
+  [['watercolour', 'watercolor', 'wash', 'wetonwet'], ['p3', 'p44', 'p21', 'p8']],
+  [['acrylic', 'pour', 'fluidart'], ['p1', 'p2', 'p24', 'p25']],
+  [['oil', 'oilpainting'], ['p5', 'p7', 'p24']],
+  [['gouache', 'poster'], ['p50', 'p6']],
+  [['marker', 'markers', 'alcohol', 'render'], ['p13', 'p22', 'p45']],
+  [['pencil', 'graphite', 'sketch', 'shading', 'portrait'], ['p9', 'p38', 'p40', 'p19', 'p39']],
+  [['colour pencil', 'color pencil', 'colouredpencil', 'coloredpencil'], ['p49', 'p10']],
+  [['ink', 'inking', 'lineart', 'fineliner', 'urbansketching'], ['p15', 'p14']],
+  [['lettering', 'calligraphy', 'brushpen'], ['p18', 'p8']],
+  [['pastel', 'oilpastel'], ['p43']],
+  [['crayon', 'kids'], ['p42']],
+  [['charcoal'], ['p11']],
+  [['model', 'architecture', 'foamboard'], ['p26', 'p27', 'p28', 'p41']],
+  [['fashion', 'croquis', 'fabric'], ['p22', 'p16', 'p33']],
+  [['journal', 'bujo', 'notebook', 'wireframe'], ['p20', 'p35', 'p47']],
+  [['canvas'], ['p24']],
+  [['craft', 'diy', 'glue'], ['p29', 'p48']],
+];
+function suggestFromText(text) {
+  const t = text.toLowerCase().replace(/#/g, ' ');
+  const hits = [], seen = new Set();
+  MATERIAL_WORDS.forEach(([words, ids]) => {
+    const w = words.find((x) => t.includes(x));
+    if (w) { hits.push(w); ids.forEach((id) => seen.add(id)); }
+  });
+  return { words: hits, products: [...seen].filter((id) => P[id]).slice(0, 8) };
+}

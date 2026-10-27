@@ -86,6 +86,7 @@ function freshState() {
     addresses: ADDRS, addressId: 'a1',
     cart: {}, saved: [], savedReels: [], liked: [], notify: [], recent: [],
     myReviews: {}, helpful: [],
+    insta: { connected: false, handle: '' },
     wallet: { balance: 250, txns: [{ id: 't1', label: 'Welcome bonus', amt: 250, at: Date.now() - 2 * 864e5 }] },
     searches: ['acrylic paint', 'fineliner'],
     orders: [{ id: 'QA20417', items, bill: billOf(items), address: ADDRS[0], pay: 'upi', slot: 'now', placedAt: Date.now() - 3 * 864e5, eta: 14, cancelled: false, sample: true }],
@@ -143,11 +144,13 @@ function searchProducts(q) {
   if (exact.length) return { list: exact, exact: true };
   return { list: scored.filter((x) => x.hits > 0).sort((a, b) => b.s - a.s).map((x) => x.p), exact: false };
 }
-const NO_FILTERS = { brands: [], price: null, inStock: false, deal: false };
+const NO_FILTERS = { brands: [], price: null, inStock: false, deal: false, cats: [], rating: 0 };
 function applyFilters(list, f, sort) {
   let r = list.filter((p) => {
     const v = dvOf(p);
     if (f.brands.length && !f.brands.includes(p.brand)) return false;
+    if ((f.cats || []).length && !f.cats.includes(p.cat)) return false;
+    if (f.rating && p.rating < f.rating) return false;
     if (f.price) {
       const [lo, hi] = PRICE_BANDS[f.price].range;
       if (v.price < lo || v.price > hi) return false;
@@ -164,7 +167,7 @@ function applyFilters(list, f, sort) {
   }[sort];
   return by ? [...r].sort(by) : r;
 }
-const filterCount = (f) => f.brands.length + (f.price ? 1 : 0) + (f.inStock ? 1 : 0) + (f.deal ? 1 : 0);
+const filterCount = (f) => f.brands.length + (f.cats || []).length + (f.rating ? 1 : 0) + (f.price ? 1 : 0) + (f.inStock ? 1 : 0) + (f.deal ? 1 : 0);
 
 /* ---------- Small building blocks ---------- */
 function I(name, opts = {}) {
@@ -192,9 +195,11 @@ function Cat3D({ c }) {
 }
 function BrandTile({ b, wide }) {
   const { nav } = useApp();
-  const n = PRODUCTS.filter((p) => p.brand === b.name).length;
+  const mine = PRODUCTS.filter((p) => p.brand === b.name);
+  const n = mine.length;
+  const hero = mine.find((p) => p.art.photo);
   return html`<button className=${'brand-tile' + (wide ? ' wide' : '')} style=${{ '--h': b.hue }} onClick=${() => nav.push('plp', { brand: b.name })} aria-label=${`${b.name}, ${n} products`}>
-    <span className="brand-mono" aria-hidden="true">${b.mono}</span>
+    <span className="brand-pic" aria-hidden="true">${hero ? html`<img src=${asset(hero.art.photo)} alt="" loading="lazy" />` : html`<span className="brand-mono">${b.mono}</span>`}<span className="brand-badge">${b.mono}</span></span>
     <span className="brand-txt"><b>${b.short}</b><small>${wide ? b.tag + ' · ' : ''}${n} item${n === 1 ? '' : 's'}</small></span>
   </button>`;
 }
@@ -592,6 +597,7 @@ function Home() {
       <div className="search-bar">
         <button className="search-fake" onClick=${() => nav.push('search')}>${I('search')}<span>Search for “${PLACEHOLDERS[ph]}”</span></button>
         <button className="mic" aria-label="Search by voice" onClick=${() => nav.push('search', { voice: true })}>${I('mic')}</button>
+        <button className="mic filt" aria-label="Browse all products with filters" onClick=${() => nav.push('plp', { collection: 'all', openFilter: true })}>${I('sliders')}</button>
       </div>
       <div className="quick-row">
         ${CATS.slice(0, 8).map((c) => html`<button key=${c.id} className="quick" onClick=${() => nav.push('plp', { cat: c.id })}><span className="quick-emoji" aria-hidden="true"><${Cat3D} c=${c} /></span><span className="quick-label">${c.short || c.name}</span></button>`)}
@@ -650,6 +656,13 @@ function Home() {
       </div>
     </section>
 
+    <section className="sec pad-x">
+      <button className="ig-promo" onClick=${() => nav.push('insta')}>
+        <span className="ig-glyph">${I('reelcam')}</span>
+        <span><b>${S.insta && S.insta.connected ? 'Supplies from your Instagram reels' : 'Shop your Instagram art reels'}</b><small>${S.insta && S.insta.connected ? `@${S.insta.handle} · ${INSTA_REELS.length} reels matched` : 'Link Instagram and we suggest supplies for reels you love'}</small></span>${I('chev')}
+      </button>
+    </section>
+
     ${recent.length > 0 && html`<section className="sec">
       <${SecHead} title="Recently viewed" />
       <${Rail} items=${recent} />
@@ -703,27 +716,35 @@ function Categories() {
 }
 
 /* ---------- Filters ---------- */
-function FilterBar({ f, setF, sort, setSort, brands }) {
-  const [sheet, setSheet] = useState(null);
+function FilterBar({ f, setF, sort, setSort, brands, base, autoOpen }) {
+  const [sheet, setSheet] = useState(autoOpen ? 'filter' : null);
+  const cats = base ? [...new Set(base.map((p) => p.cat))] : [];
   const n = filterCount(f);
   return html`<div className="filterbar">
     <div className="chips scroll-x">
       <button className=${'chip' + (sort !== 'rel' ? ' on' : '')} onClick=${() => setSheet('sort')}>${I('sort')} ${sort === 'rel' ? 'Sort' : SORTS.find((s) => s[0] === sort)[1]} ${I('chevd')}</button>
       <button className=${'chip' + (n ? ' on' : '')} onClick=${() => setSheet('filter')}>${I('sliders')} Filters${n ? ` (${n})` : ''}</button>
       <button className=${'chip' + (f.inStock ? ' on' : '')} aria-pressed=${f.inStock} onClick=${() => setF({ ...f, inStock: !f.inStock })}>${f.inStock && I('check')} In stock</button>
+      <button className=${'chip' + (f.rating === 4.5 ? ' on' : '')} aria-pressed=${f.rating === 4.5} onClick=${() => setF({ ...f, rating: f.rating === 4.5 ? 0 : 4.5 })}>${I('star', { fill: f.rating === 4.5 })} 4.5 & up</button>
       <button className=${'chip' + (f.deal ? ' on' : '')} aria-pressed=${f.deal} onClick=${() => setF({ ...f, deal: !f.deal })}>${f.deal && I('check')} 15%+ off</button>
       ${Object.entries(PRICE_BANDS).slice(0, 2).map(([k, b]) => html`<button key=${k} className=${'chip' + (f.price === k ? ' on' : '')} aria-pressed=${f.price === k} onClick=${() => setF({ ...f, price: f.price === k ? null : k })}>${b.label}</button>`)}
     </div>
     ${sheet === 'sort' && html`<${Sheet} title="Sort by" onClose=${() => setSheet(null)}>
       <div className="radio-list">${SORTS.map(([k, l]) => html`<label key=${k} className="radio-row"><input type="radio" name="sort" checked=${sort === k} onChange=${() => { setSort(k); setSheet(null); }} /><span>${l}</span></label>`)}</div>
     <//>`}
-    ${sheet === 'filter' && html`<${FilterSheet} f=${f} brands=${brands} onApply=${(nf) => { setF(nf); setSheet(null); }} onClose=${() => setSheet(null)} />`}
+    ${sheet === 'filter' && html`<${FilterSheet} f=${f} brands=${brands} cats=${cats} base=${base} onApply=${(nf) => { setF(nf); setSheet(null); }} onClose=${() => setSheet(null)} />`}
   </div>`;
 }
-function FilterSheet({ f, brands, onApply, onClose }) {
-  const [d, setD] = useState(f);
+function FilterSheet({ f, brands, cats, base, onApply, onClose }) {
+  const [d, setD] = useState({ ...NO_FILTERS, ...f });
+  const count = base ? applyFilters(base, d, 'rel').length : null;
+  const tc = (c) => setD({ ...d, cats: d.cats.includes(c) ? d.cats.filter((x) => x !== c) : [...d.cats, c] });
   const tb = (b) => setD({ ...d, brands: d.brands.includes(b) ? d.brands.filter((x) => x !== b) : [...d.brands, b] });
   return html`<${Sheet} title="Filters" onClose=${onClose} tall>
+    ${cats && cats.length > 1 && html`<h4 className="sheet-sub">Category</h4>
+    <div className="chips wrap">${cats.map((c) => { const cc = catOf(c); return html`<button key=${c} className=${'chip cat-chip' + (d.cats.includes(c) ? ' on' : '')} aria-pressed=${d.cats.includes(c)} onClick=${() => tc(c)}><${Cat3D} c=${cc} /> ${cc.short || cc.name}</button>`; })}</div>`}
+    <h4 className="sheet-sub">Customer rating</h4>
+    <div className="chips wrap">${[[0, 'Any'], [4, '4.0 & up'], [4.5, '4.5 & up']].map(([r, l]) => html`<button key=${r} className=${'chip' + (d.rating === r ? ' on' : '')} aria-pressed=${d.rating === r} onClick=${() => setD({ ...d, rating: r })}>${r > 0 && I('star', { fill: true, cls: 'star' })} ${l}</button>`)}</div>
     <h4 className="sheet-sub">Price</h4>
     <div className="chips wrap">${Object.entries(PRICE_BANDS).map(([k, b]) => html`<button key=${k} className=${'chip' + (d.price === k ? ' on' : '')} aria-pressed=${d.price === k} onClick=${() => setD({ ...d, price: d.price === k ? null : k })}>${b.label}</button>`)}</div>
     <h4 className="sheet-sub">Brand</h4>
@@ -733,7 +754,7 @@ function FilterSheet({ f, brands, onApply, onClose }) {
     <label className="switch-row"><span>Only 15% off or more</span><input type="checkbox" role="switch" checked=${d.deal} onChange=${(e) => setD({ ...d, deal: e.target.checked })} /></label>
     <div className="sheet-actions">
       <button className="btn ghost" onClick=${() => setD(NO_FILTERS)}>Clear all</button>
-      <button className="btn primary" onClick=${() => onApply(d)}>Show results</button>
+      <button className="btn primary" disabled=${count === 0} onClick=${() => onApply(d)}>${count == null ? 'Show results' : count === 0 ? 'No matches' : `Show ${count} result${count === 1 ? '' : 's'}`}</button>
     </div>
   <//>`;
 }
@@ -755,10 +776,11 @@ function ResultsGrid({ list, loading, onClear, filtered }) {
 /* ---------- Product list (category, field, collection) ---------- */
 function PLP({ params }) {
   const { nav, addMany } = useApp();
-  const { cat, field, collection, brand } = params;
+  const { cat, field, collection, brand, openFilter } = params;
   const c = cat && catOf(cat), fd = field && FIELDS.find((x) => x.id === field);
   const base = useMemo(() => {
     if (brand) return PRODUCTS.filter((p) => p.brand === brand);
+    if (collection === 'all') return PRODUCTS;
     if (c) return PRODUCTS.filter((p) => p.cat === cat);
     if (fd) return fd.kit.map((id) => P[id]).concat(PRODUCTS.filter((p) => !fd.kit.includes(p.id) && p.fields.includes(field)));
     return [...PRODUCTS].filter((p) => pctOff(dvOf(p)) >= 15).sort((a, b) => pctOff(dvOf(b)) - pctOff(dvOf(a)));
@@ -769,7 +791,7 @@ function PLP({ params }) {
   const [sort, setSort] = useState('rel');
   const loading = useLoading([sub, JSON.stringify(f), sort]);
   const list = applyFilters(sub === 'All' ? base : base.filter((p) => p.sub === sub), f, sort);
-  const title = brand ? (BRAND_INFO.find((b) => b.name === brand) || { short: brand }).short : c ? c.name : fd ? fd.name : 'Best deals';
+  const title = brand ? (BRAND_INFO.find((b) => b.name === brand) || { short: brand }).short : c ? c.name : fd ? fd.name : collection === 'all' ? 'All products' : 'Best deals';
   const essentials = fd ? fd.kit.map((id) => P[id]).filter((p) => dvOf(p).stock > 0).slice(0, 4) : [];
   return html`<div className="screen-col">
     <${TopBar} title=${title} sub=${`${base.length} items`} right=${html`<button className="round-btn" aria-label="Search" onClick=${() => nav.push('search')}>${I('search')}</button><${CartBtn} />`} />
@@ -781,7 +803,7 @@ function PLP({ params }) {
       ${subs.length > 2 && html`<div className="chips scroll-x sub-chips" role="tablist" aria-label="Type">
         ${subs.map((s) => html`<button key=${s} role="tab" aria-selected=${sub === s} className=${'chip' + (sub === s ? ' on' : '')} onClick=${() => setSub(s)}>${s}</button>`)}
       </div>`}
-      <${FilterBar} f=${f} setF=${setF} sort=${sort} setSort=${setSort} brands=${[...new Set(base.map((p) => p.brand))].sort()} />
+      <${FilterBar} f=${f} setF=${setF} sort=${sort} setSort=${setSort} brands=${[...new Set(base.map((p) => p.brand))].sort()} base=${sub === 'All' ? base : base.filter((p) => p.sub === sub)} autoOpen=${!!openFilter} />
       <p className="count-line pad-x" aria-live="polite">${loading ? 'Loading…' : `${list.length} result${list.length === 1 ? '' : 's'}`}</p>
       <${ResultsGrid} list=${list} loading=${loading} filtered=${filterCount(f) > 0 || sub !== 'All'} onClear=${() => { setF(NO_FILTERS); setSub('All'); }} />
       <div className="spacer"></div>
@@ -841,7 +863,7 @@ function Search({ params }) {
       </ul>` : done ? html`<div>
         ${res.list.length ? html`
           ${!res.exact && html`<p className="notice pad-x">${I('info')} No exact match for “${done}”. Showing related items.</p>`}
-          <${FilterBar} f=${f} setF=${setF} sort=${sort} setSort=${setSort} brands=${[...new Set(res.list.map((p) => p.brand))].sort()} />
+          <${FilterBar} f=${f} setF=${setF} sort=${sort} setSort=${setSort} brands=${[...new Set(res.list.map((p) => p.brand))].sort()} base=${res.list} />
           <p className="count-line pad-x" aria-live="polite">${loading ? 'Searching…' : `${list.length} result${list.length === 1 ? '' : 's'} for “${done}”`}</p>
           <${ResultsGrid} list=${list} loading=${loading} filtered=${filterCount(f) > 0} onClear=${() => setF(NO_FILTERS)} />` : html`
           <${Empty} icon="search" title=${`No results for “${done}”`} text="Check the spelling, or try a broader word like “marker” or “paper”.">
@@ -861,13 +883,7 @@ function Search({ params }) {
       </div>`}
     </div>
     ${!typing && done && html`<${CartBar} inStack />`}
-    ${voice && html`<${Sheet} title="Voice search" onClose=${() => setVoice(false)}>
-      <div className="voice">
-        <div className="voice-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-        <p className="muted">This prototype doesn't use your microphone. Tap a phrase to try the flow.</p>
-        <div className="chips wrap center">${['paint brush', 'A3 sketchbook', 'cutting mat', 'Staedtler fineliner'].map((t) => html`<button key=${t} className="chip" onClick=${() => { setVoice(false); submit(t); }}>“${t}”</button>`)}</div>
-      </div>
-    <//>`}
+    ${voice && html`<${VoiceSheet} onClose=${() => setVoice(false)} onResult=${(t) => { setVoice(false); submit(t); }} />`}
   </div>`;
 }
 
@@ -974,6 +990,160 @@ function PDP({ params }) {
           <button className="btn lav grow" onClick=${() => addToCart(p.id, vi, q)}>${I('cart')} Add to cart</button>
           <button className="btn primary" onClick=${() => buyNow(p.id, vi, q)}>Buy now</button>`}
     </div>
+  </div>`;
+}
+
+/* ---------- Voice search ----------
+   Uses the browser's speech recognition (Chrome, Edge, Safari, Android). Falls back to sample
+   phrases where it isn't available or the microphone is blocked. */
+const VOICE_ERRORS = {
+  'not-allowed': 'Microphone access is blocked. Allow the microphone for this site in your browser settings, then tap the mic.',
+  'service-not-allowed': 'Microphone access is blocked. Allow the microphone for this site in your browser settings, then tap the mic.',
+  'no-speech': "We didn't hear anything. Tap the mic and speak a little closer.",
+  'audio-capture': 'No microphone was found. Plug one in or type your search.',
+  network: 'Voice search needs an internet connection. Check it and try again.',
+};
+function VoiceSheet({ onResult, onClose }) {
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const [st, setSt] = useState(Rec ? 'starting' : 'unsupported');
+  const [text, setText] = useState('');
+  const [err, setErr] = useState('');
+  const recRef = useRef(null);
+  const start = () => {
+    if (!Rec) return;
+    try { recRef.current && recRef.current.abort(); } catch (e) { /* ignore */ }
+    let finalText = '', failed = false;
+    try {
+      const r = new Rec();
+      recRef.current = r;
+      r.lang = 'en-IN';
+      r.interimResults = true;
+      r.maxAlternatives = 1;
+      r.onstart = () => { setSt('listening'); setText(''); setErr(''); };
+      r.onresult = (e) => {
+        let interim = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const t = e.results[i][0].transcript;
+          if (e.results[i].isFinal) finalText += t; else interim += t;
+        }
+        setText((finalText + ' ' + interim).trim());
+      };
+      r.onerror = (e) => { failed = true; setSt('error'); setErr(VOICE_ERRORS[e.error] || 'Voice search stopped. Tap the mic to try again.'); };
+      r.onend = () => {
+        recRef.current = null;
+        if (failed) return;
+        const t = finalText.trim();
+        if (t) { setSt('done'); setText(t); setTimeout(() => onResult(t), 500); }
+        else { setSt('error'); setErr(VOICE_ERRORS['no-speech']); }
+      };
+      setSt('starting');
+      r.start();
+    } catch (e) { setSt('error'); setErr('Voice search could not start here. Type your search or tap a phrase below.'); }
+  };
+  useEffect(() => { start(); return () => { try { recRef.current && recRef.current.abort(); } catch (e) { /* ignore */ } }; }, []);
+  const listening = st === 'listening' || st === 'starting';
+  const status = { starting: 'Starting the microphone…', listening: text ? 'Listening…' : 'Listening. Say what you need, like “A3 sketchbook”.', done: 'Searching…', error: err, unsupported: "Voice search isn't available in this browser. Try Chrome or Edge, or tap a phrase below." }[st];
+  return html`<${Sheet} title="Voice search" onClose=${onClose}>
+    <div className="voice2">
+      <button type="button" className=${'voice-mic' + (listening ? ' on' : '') + (st === 'done' ? ' done' : '')} disabled=${!Rec} aria-label=${listening ? 'Listening' : 'Start listening'} onClick=${() => (listening ? null : start())}>
+        <span className="vm-ring" aria-hidden="true"></span><span className="vm-ring r2" aria-hidden="true"></span>
+        ${I(st === 'done' ? 'check' : 'mic')}
+      </button>
+      <p className=${'voice-text' + (text ? ' has' : '')} aria-live="polite">${text || (Rec ? '…' : '')}</p>
+      <p className=${'voice-status' + (st === 'error' ? ' err' : '')} role=${st === 'error' ? 'alert' : null}>${status}</p>
+      ${(st === 'error' || st === 'unsupported') && html`<div className="voice-try"><small>Or try</small><div className="chips wrap center">${['paint brush', 'A3 sketchbook', 'Apsara pencils', 'poster colours'].map((t) => html`<button key=${t} className="chip" onClick=${() => onResult(t)}>“${t}”</button>`)}</div></div>`}
+    </div>
+  <//>`;
+}
+
+/* ---------- Instagram art reels ----------
+   Prototype of linking Instagram: the connection and feed are simulated. A live version needs
+   Meta's Instagram API (an approved app, OAuth on Instagram's own page, and a server). */
+function InstaConnectSheet({ onClose }) {
+  const { act, toast } = useApp();
+  const [handle, setHandle] = useState('');
+  const [busy, setBusy] = useState(false);
+  const connect = () => {
+    setBusy(true);
+    setTimeout(() => {
+      act((s) => { s.insta = { connected: true, handle: handle.trim().replace(/^@/, '') || 'your.account', at: Date.now() }; });
+      toast('Instagram linked. Here are supplies for your art reels.');
+      onClose();
+    }, 1300);
+  };
+  return html`<${Sheet} title="Link Instagram" onClose=${onClose}>
+    <div className="ig-connect">
+      <div className="ig-logos" aria-hidden="true"><img src=${asset('brand/logo-q.png')} alt="" /><span className="ig-dots"><i></i><i></i><i></i></span><span className="ig-glyph">${I('reelcam')}</span></div>
+      <p className="ig-lead">See supplies for the art reels you save and like on Instagram.</p>
+      <ul className="ig-perms">
+        <li className="yes">${I('check')} Read the art reels you saved or liked</li>
+        <li className="yes">${I('check')} Read their captions and hashtags to spot materials</li>
+        <li className="no">${I('x')} Never see your password</li>
+        <li className="no">${I('x')} Never post, comment or message for you</li>
+      </ul>
+      <label className="text-field"><span>Instagram username <small>(optional)</small></span><input id="ig-handle" value=${handle} onChange=${(e) => setHandle(e.target.value)} placeholder="@yourname" autoComplete="off" autoCapitalize="none" /></label>
+      <button className="btn primary" disabled=${busy} onClick=${connect}>${busy ? html`<span className="spinner xs" aria-hidden="true"></span> Waiting for Instagram` : html`${I('link')} Continue to Instagram`}</button>
+      <p className="proto-note">Prototype: linking is simulated and shows sample reels. A live app opens Instagram's own sign-in page, so Quick Art never sees your password.</p>
+    </div>
+  <//>`;
+}
+function InstaReelCard({ r }) {
+  const { addMany, jumpToReel } = useApp();
+  const items = r.products.map((id) => P[id]).filter((p) => dvOf(p).stock > 0);
+  const total = items.reduce((a, p) => a + dvOf(p).price, 0);
+  return html`<article className="ig-card">
+    <div className="ig-card-top">
+      <div className="ig-thumb" aria-hidden="true" dangerouslySetInnerHTML=${{ __html: sceneSvg(r.scene) }}></div>
+      <div className="ig-meta">
+        <b>@${r.creator}</b>
+        <p>${r.caption}</p>
+        <div className="ig-tags"><small>We spotted</small>${r.tags.map((t) => html`<span key=${t} className="ig-tag">${t}</span>`)}</div>
+      </div>
+    </div>
+    <div className="rail ig-rail">${r.products.map((id) => html`<${MiniCard} key=${id} p=${P[id]} />`)}</div>
+    <button className="btn lav sm ig-add" onClick=${() => addMany(items.map((p) => [p.id, p.dv, 1]), `Added ${items.length} items for this look`)}>${I('cart')} Add all ${items.length} · ${inr(total)}</button>
+  </article>`;
+}
+function InstaScreen() {
+  const { S, act, toast } = useApp();
+  const [linking, setLinking] = useState(false);
+  const [cap, setCap] = useState('');
+  const [found, setFound] = useState(null);
+  const ig = S.insta || {};
+  const analyse = (e) => {
+    e.preventDefault();
+    if (!cap.trim()) return;
+    setFound(suggestFromText(cap));
+  };
+  return html`<div className="screen-col">
+    <${TopBar} title="Instagram art reels" sub=${ig.connected ? '@' + ig.handle + ' linked' : 'Shop the supplies in reels you love'} right=${html`<${CartBtn} />`} />
+    <div className="stack-body pad-x ig-body">
+      ${ig.connected ? html`<div className="ig-linked card">
+          <span className="ig-glyph sm">${I('reelcam')}</span>
+          <div><b>@${ig.handle}</b><small>Linked · ${INSTA_REELS.length} art reels found</small></div>
+          <button className="link" onClick=${() => { act((s) => { s.insta = { connected: false, handle: '' }; }); toast('Instagram unlinked'); }}>Unlink</button>
+        </div>
+        <h2 className="h-s ig-h">From your saved and liked reels</h2>
+        <div className="ig-list">${INSTA_REELS.map((r) => html`<${InstaReelCard} key=${r.id} r=${r} />`)}</div>`
+      : html`<div className="ig-hero">
+          <span className="ig-glyph lg">${I('reelcam')}</span>
+          <h2>Turn the art reels you love into a shopping list</h2>
+          <p>Link Instagram and we'll suggest the paints, pens and paper used in the reels you save and like.</p>
+          <button className="btn primary" onClick=${() => setLinking(true)}>${I('link')} Link Instagram</button>
+        </div>`}
+      <form className="ig-paste card" onSubmit=${analyse}>
+        <b>Paste a reel caption or hashtags</b>
+        <small>Works without linking. We match the materials mentioned to products.</small>
+        <label className="text-field"><span className="sr-only">Caption or hashtags</span><textarea id="ig-caption" rows="3" value=${cap} onChange=${(e) => { setCap(e.target.value); setFound(null); }} placeholder="e.g. Loose florals in #watercolour with a fineliner"></textarea></label>
+        <button type="submit" className="btn ghost" disabled=${!cap.trim()}>${I('search')} Find supplies</button>
+        ${found && (found.products.length ? html`<div className="ig-found">
+            <p>Spotted: ${found.words.map((w) => html`<span key=${w} className="ig-tag">${w}</span>`)}</p>
+            <div className="grid2 flush">${found.products.map((id) => html`<${ProductCard} key=${id} p=${P[id]} wide />`)}</div>
+          </div>` : html`<p className="notice">${I('info')} We couldn't spot any materials in that text. Try words like watercolour, marker, sketch or canvas.</p>`)}
+      </form>
+      <div className="spacer"></div>
+    </div>
+    ${linking && html`<${InstaConnectSheet} onClose=${() => setLinking(false)} />`}
   </div>`;
 }
 
@@ -1261,7 +1431,7 @@ function Explore({ active }) {
     ${list.length ? html`<${Feed} key=${filter} reels=${list} active=${active} start=${filter === 'foryou' ? jump : null} onStarted=${clearJump} />`
       : html`<div className="feed-empty"><${Empty} icon="video" title="Pick your field to see videos for it" text="We'll show demos of materials used in your discipline." cta="Choose fields" onCta=${() => nav.push('fields', { mode: 'edit' })} /></div>`}
     <div className="explore-top">
-      <div className="explore-title"><h1>Explore</h1><${CartBtn} dark /></div>
+      <div className="explore-title"><h1>Explore</h1><div className="row-gap"><button className="ig-chip" onClick=${() => nav.push('insta')} aria-label="Instagram art reels">${I('reelcam')} ${S.insta && S.insta.connected ? 'Your reels' : 'Link Instagram'}</button><${CartBtn} dark /></div></div>
       <div className="chips scroll-x dark" role="tablist" aria-label="Video topics">
         ${EXPLORE_FILTERS.map(([k, l]) => html`<button key=${k} role="tab" aria-selected=${filter === k} className=${'chip' + (filter === k ? ' on' : '')} onClick=${() => setFilter(k)}>${l}</button>`)}
       </div>
@@ -1896,6 +2066,7 @@ function Profile() {
     <section className="list-sec pad-x">
       <${Row} icon="heart" label="Saved items" value=${S.saved.length} onClick=${() => nav.push('saved', { tab: 'items' })} />
       <${Row} icon="bookmark" label="Saved videos" value=${S.savedReels.length} onClick=${() => nav.push('saved', { tab: 'videos' })} />
+      <${Row} icon="reelcam" label="Instagram" value=${S.insta && S.insta.connected ? '@' + S.insta.handle : 'Not linked'} onClick=${() => nav.push('insta')} />
       <${Row} icon="orders" label="Order history" value=${S.orders.length} onClick=${() => nav.tab('orders')} />
       <${Row} icon="pin" label="Saved addresses" value=${S.addresses.length} onClick=${() => nav.push('addresses')} />
       <${Row} icon="card" label="Payment preference" value=${PAYS[S.pay].label} onClick=${() => setPaySheet(true)} />
@@ -2043,7 +2214,7 @@ const TABS = [
   { id: 'orders', label: 'Orders', icon: 'orders', C: Orders },
   { id: 'profile', label: 'Profile', icon: 'user', C: Profile },
 ];
-const SCREENS = { login: Login, otp: Otp, fields: FieldsScreen, search: Search, plp: PLP, pdp: PDP, cart: Cart, checkout: Checkout, paying: Paying, confirm: Confirm, order: OrderDetail, saved: Saved, addresses: Addresses, help: Help, pricing: Pricing, reels: ReelsScreen };
+const SCREENS = { insta: InstaScreen, login: Login, otp: Otp, fields: FieldsScreen, search: Search, plp: PLP, pdp: PDP, cart: Cart, checkout: Checkout, paying: Paying, confirm: Confirm, order: OrderDetail, saved: Saved, addresses: Addresses, help: Help, pricing: Pricing, reels: ReelsScreen };
 let _rk = 0;
 function mkRoute(name, params) { return { name, params: params || {}, k: ++_rk }; }
 
