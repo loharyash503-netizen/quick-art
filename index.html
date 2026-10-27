@@ -1269,6 +1269,28 @@ h1, h2, h3 { text-wrap: balance; }
   .field-tile, .fields-title, .fields-sub, .fields-name { animation-delay: 0s !important; }
 }
 .avatar .ic { width: 52%; height: 52%; }
+
+/* ---------- Icon micro-animations ----------
+   3D icons bob gently (staggered so they never move in unison) and wiggle on hover or tap.
+   Navigation icons pop when their tab becomes active. */
+:is(.quick, .cat-tile, .cat-cell-ic, .field-emoji, .field-row-ic, .kit-emoji) .emo { transform-origin: 50% 80%; animation: ic-bob 3.6s ease-in-out infinite; }
+:is(.quick, .cat-tile, .cat-cell, .field-tile, .field-row):nth-child(3n+2) .emo { animation-duration: 4.1s; animation-delay: -1.3s; }
+:is(.quick, .cat-tile, .cat-cell, .field-tile, .field-row):nth-child(3n) .emo { animation-duration: 3.2s; animation-delay: -2.4s; }
+:is(.quick, .cat-tile, .cat-cell, .field-tile, .field-row):nth-child(4n) .emo { animation-delay: -0.7s; }
+@keyframes ic-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-3px) rotate(-3deg); } }
+
+:is(.quick, .cat-tile, .cat-cell, .field-tile, .field-row, .kit-card, .nudge):active .emo { animation: ic-wiggle .55s ease both; }
+@media (hover: hover) {
+  :is(.quick, .cat-tile, .cat-cell, .field-tile, .field-row, .nudge):hover .emo { animation: ic-wiggle .6s ease both; }
+}
+@keyframes ic-wiggle { 0% { transform: none; } 25% { transform: rotate(-12deg) scale(1.14); } 50% { transform: rotate(9deg) scale(1.1); } 75% { transform: rotate(-4deg) scale(1.04); } 100% { transform: none; } }
+
+/* Navigation: the icon pops when its tab is chosen */
+.bnav-item.on .bnav-ic .ic { animation: nav-pop .45s cubic-bezier(.3,1.6,.5,1); }
+@keyframes nav-pop { 0% { transform: scale(.7) translateY(2px); } 60% { transform: scale(1.15) translateY(-2px); } 100% { transform: none; } }
+@media (hover: hover) {
+  .bnav-item:not(.on):hover .bnav-ic .ic { transform: translateY(-2px); transition: transform .2s ease; }
+}
 </style>
 
 <div id="root"></div>
