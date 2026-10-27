@@ -1291,6 +1291,64 @@ h1, h2, h3 { text-wrap: balance; }
 @media (hover: hover) {
   .bnav-item:not(.on):hover .bnav-ic .ic { transform: translateY(-2px); transition: transform .2s ease; }
 }
+
+/* ---------- Navigation dock (phones and tablets) ----------
+   A floating glass dock. The selected icon rises out of the bar into a gradient bubble that glides
+   between tabs on a spring; a soft notch is cut around it, the label slides in and a ripple plays on tap. */
+.bnav-track { display: contents; }
+.bnav-blob, .bnav-ripple { display: none; }
+@media (max-width: 1023.98px) {
+  .device { --nav-h: 80px; }
+  .bnav { left: 0; right: 0; bottom: calc(10px + var(--hb)); width: min(calc(100% - 24px), 460px); height: 66px; margin-inline: auto; padding: 0; display: block;
+    border: 1px solid rgba(255,255,255,.7); border-radius: 26px; background: rgba(255,255,255,.82); backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    box-shadow: 0 12px 32px rgba(73,33,201,.16), 0 2px 6px rgba(25,23,71,.06); }
+  .bnav-track { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); height: 100%; }
+
+  /* The rising gradient bubble, with a notch ring in the page colour */
+  .bnav-blob { display: block; position: absolute; z-index: 0; top: -20px; left: calc((100% / 5) * var(--idx) + (100% / 10) - 26px); width: 52px; height: 52px; border-radius: 50%;
+    background: var(--grad); box-shadow: 0 0 0 6px var(--bg), 0 10px 22px rgba(104,66,216,.42); transition: left .5s cubic-bezier(.34,1.45,.5,1); }
+  .bnav-blob::after { content: ''; position: absolute; inset: 7px 9px auto; height: 14px; border-radius: 50%; background: linear-gradient(rgba(255,255,255,.45), transparent); }
+
+  .bnav-item { position: relative; z-index: 1; display: grid; justify-items: center; align-content: end; gap: 2px; min-height: 0; padding-bottom: 10px; color: var(--ink-3); font-size: 10.5px; font-weight: 600; transition: color .25s ease; }
+  .bnav-ic { width: 44px; height: 30px; background: transparent !important; transition: transform .45s cubic-bezier(.34,1.5,.5,1); }
+  .bnav-ic .ic { width: 22px; height: 22px; transition: color .25s ease; }
+  .bnav-label { transition: transform .35s cubic-bezier(.34,1.4,.5,1), color .25s ease; }
+
+  .bnav-item.on { color: var(--purple); font-weight: 700; }
+  .bnav-item.on .bnav-ic { transform: translateY(-21px); color: #fff; }
+  .bnav-item.on .bnav-ic .ic { animation: dock-pop .55s cubic-bezier(.34,1.6,.5,1); }
+  .bnav-item.on .bnav-label { transform: translateY(1px); }
+  @keyframes dock-pop { 0% { transform: scale(.6) rotate(-18deg); } 55% { transform: scale(1.18) rotate(8deg); } 100% { transform: none; } }
+
+  /* Explore keeps its gradient tile when not selected; once selected the bubble takes over */
+  .bnav-item.is-explore:not(.on) .bnav-ic .ic { width: 26px; height: 26px; padding: 4px; border-radius: 8px; background: var(--grad); color: #fff; }
+  .bnav-item.is-explore.on .bnav-ic .ic { background: none; padding: 0; width: 22px; height: 22px; }
+
+  /* Tap ripple from the bubble */
+  .bnav-ripple { display: block; position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; border: 2px solid var(--grad-start); pointer-events: none; animation: dock-ripple .6s ease-out forwards; }
+  @keyframes dock-ripple { from { transform: scale(.8); opacity: .9; } to { transform: scale(1.9); opacity: 0; } }
+
+  .bnav-item:active:not(:disabled) .bnav-ic { transform: translateY(1px) scale(.9); }
+  .bnav-item.on:active .bnav-ic { transform: translateY(-21px) scale(.92); }
+  .dot-badge { top: -4px; right: 2px; }
+  .bnav-item.on .dot-badge { border-color: var(--purple); }
+
+  /* Explore: dark glass dock over the video */
+  .bnav.dark { background: rgba(20,17,43,.72); border-color: rgba(255,255,255,.1); box-shadow: 0 12px 32px rgba(0,0,0,.4); }
+  .bnav.dark .bnav-blob { box-shadow: 0 0 0 6px rgba(20,17,43,.9), 0 10px 22px rgba(168,85,247,.45); }
+  .bnav.dark .bnav-item { color: #B9B1C2; }
+  .bnav.dark .bnav-item.on { color: #fff; }
+
+  .has-nav { padding-bottom: calc(var(--nav-h) + var(--hb) + 20px); }
+  .cartbar { bottom: 8px; } /* the scroll padding already clears the dock */
+  .toast { bottom: calc(var(--nav-h) + var(--hb) + 84px); }
+}
+@media (min-width: 600px) and (max-width: 1023.98px) {
+  .bnav { padding-inline: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bnav-blob, .bnav-ic, .bnav-label { transition: none !important; }
+}
 </style>
 
 <div id="root"></div>
