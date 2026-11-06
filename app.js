@@ -422,7 +422,7 @@ function LoginHero() {
   </div>`;
 }
 function Login({ params }) {
-  const { nav, act } = useApp();
+  const { S, nav, act } = useApp();
   const mode = params.mode || 'onboard';
   const [ph, setPh] = useState('');
   const [kb, setKb] = useState(false);
@@ -439,7 +439,7 @@ function Login({ params }) {
   const skip = () => {
     if (mode === 'onboard') {
       act((s) => { s.user.guest = true; });
-      nav.reset([['fields', { mode: 'onboard' }]]);
+      if (S.user.onboarded) nav.tab('home'); else nav.reset([['fields', { mode: 'onboard' }]]);
     } else nav.pop();
   };
   const type = (d) => { setErr(''); setPh((x) => (x + d).slice(0, 10)); };
@@ -475,7 +475,7 @@ function PaperPlane() {
   return html`<svg className="plane" viewBox="0 0 80 64" aria-hidden="true"><path d="M8 58c10-2 14-10 20-16" fill="none" stroke="#1E1530" stroke-width="1.6" stroke-dasharray="3 4" stroke-linecap="round"/><path d="M28 34 76 6 60 50 44 40z" fill="#fff" stroke="#1E1530" stroke-width="2" stroke-linejoin="round"/><path d="M44 40 76 6 36 38l4 12z" fill="#EEEAF4" stroke="#1E1530" stroke-width="2" stroke-linejoin="round"/></svg>`;
 }
 function Otp({ params }) {
-  const { nav, act, toast, setStackDirect } = useApp();
+  const { S, nav, act, toast, setStackDirect } = useApp();
   const [code, setCode] = useState('');
   const [kb, setKb] = useState(true);
   const [err, setErr] = useState('');
@@ -489,7 +489,7 @@ function Otp({ params }) {
     if (code.length < 6) { setErr('Enter all 6 digits.'); return; }
     if (code === '000000') { setErr("That code didn't match. Check the SMS or resend it."); return; }
     act((s) => { s.user.loggedIn = true; s.user.guest = false; s.user.phone = params.phone; });
-    if (params.mode === 'onboard') nav.reset([['fields', { mode: 'onboard' }]]);
+    if (params.mode === 'onboard') { if (S.user.onboarded) nav.tab('home'); else nav.reset([['fields', { mode: 'onboard' }]]); }
     else if (params.mode === 'checkout') setStackDirect((st) => [...st.slice(0, -2), mkRoute('checkout')]);
     else { nav.popN(2); toast('Logged in'); }
   };
@@ -2256,7 +2256,8 @@ function App() {
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* ignore */ } }, [S]);
 
   const [tab, setTab] = useState('home');
-  const [stack, setStack] = useState(() => (S.user.onboarded ? [] : [mkRoute('login', { mode: 'onboard' })]));
+  // Every launch opens on the login screen; returning users skip the field picker afterwards
+  const [stack, setStack] = useState(() => [mkRoute('login', { mode: 'onboard' })]);
   const [toastS, setToastS] = useState(null);
   const [sheet, setSheet] = useState(null);
   const [jump, setJump] = useState(null);

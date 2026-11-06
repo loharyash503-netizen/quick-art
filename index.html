@@ -1395,6 +1395,8 @@ h1, h2, h3 { text-wrap: balance; }
 
 /* ---------- Navigation on every screen ---------- */
 .bnav { z-index: 45; }
+/* No navigation on sign-in, OTP and payment screens */
+.bnav[aria-hidden="true"] { display: none; }
 /* An open panel always sits above the navigation */
 .device:has(.sheet-wrap) .bnav { z-index: 20; }
 
