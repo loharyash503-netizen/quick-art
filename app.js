@@ -475,7 +475,7 @@ function PaperPlane() {
   return html`<svg className="plane" viewBox="0 0 80 64" aria-hidden="true"><path d="M8 58c10-2 14-10 20-16" fill="none" stroke="#1E1530" stroke-width="1.6" stroke-dasharray="3 4" stroke-linecap="round"/><path d="M28 34 76 6 60 50 44 40z" fill="#fff" stroke="#1E1530" stroke-width="2" stroke-linejoin="round"/><path d="M44 40 76 6 36 38l4 12z" fill="#EEEAF4" stroke="#1E1530" stroke-width="2" stroke-linejoin="round"/></svg>`;
 }
 function Otp({ params }) {
-  const { S, nav, act, toast, setStackDirect } = useApp();
+  const { S, nav, act, toast, setStackDirect, welcome } = useApp();
   const [code, setCode] = useState('');
   const [kb, setKb] = useState(true);
   const [err, setErr] = useState('');
@@ -489,7 +489,10 @@ function Otp({ params }) {
     if (code.length < 6) { setErr('Enter all 6 digits.'); return; }
     if (code === '000000') { setErr("That code didn't match. Check the SMS or resend it."); return; }
     act((s) => { s.user.loggedIn = true; s.user.guest = false; s.user.phone = params.phone; });
-    if (params.mode === 'onboard') { if (S.user.onboarded) nav.tab('home'); else nav.reset([['fields', { mode: 'onboard' }]]); }
+    if (params.mode === 'onboard') {
+      if (S.user.onboarded) { welcome(S.user.name && S.user.name !== 'there' ? `Welcome back, ${S.user.name}!` : 'Welcome back!'); nav.tab('home'); }
+      else nav.reset([['fields', { mode: 'onboard' }]]);
+    }
     else if (params.mode === 'checkout') setStackDirect((st) => [...st.slice(0, -2), mkRoute('checkout')]);
     else { nav.popN(2); toast('Logged in'); }
   };
@@ -517,7 +520,7 @@ function Otp({ params }) {
   </div>`;
 }
 function FieldsScreen({ params }) {
-  const { S, act, nav, toast } = useApp();
+  const { S, act, nav, toast, welcome } = useApp();
   const onboard = params.mode === 'onboard';
   const [sel, setSel] = useState(S.user.fields);
   const [name, setName] = useState(onboard ? '' : S.user.name || ''); // new users type their own name
@@ -527,7 +530,7 @@ function FieldsScreen({ params }) {
       s.user.fields = fields;
       if (onboard) { s.user.onboarded = true; s.user.name = name.trim() || 'there'; }
     });
-    if (onboard) nav.tab('home');
+    if (onboard) { welcome(name.trim() ? `Welcome, ${name.trim()}!` : 'Welcome to Quick Art!'); nav.tab('home'); }
     else { nav.pop(); toast('Your fields are updated'); }
   };
   const picked = FIELDS.filter((f) => sel.includes(f.id));
@@ -2242,6 +2245,22 @@ function BottomNav({ hidden, dark }) {
     </div>
   </nav>`;
 }
+/* Short welcome between signing in and Home: a brand gradient opens from the centre,
+   the Q logo and greeting pop in, then the overlay fades away to reveal Home. */
+function WelcomeSplash({ text, onDone }) {
+  useEffect(() => {
+    const quick = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const t = setTimeout(onDone, quick ? 700 : 1650);
+    return () => clearTimeout(t);
+  }, []);
+  return html`<div className="welcome" role="status" aria-live="polite">
+    <div className="wl-bg" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div className="wl-mark"><img src=${asset('brand/logo-q.png')} alt="" /></div>
+    <b className="wl-name">Quick Art</b>
+    <p className="wl-text">${text}</p>
+    <span className="wl-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+  </div>`;
+}
 function Toast({ t, onDone }) {
   if (!t) return null;
   return html`<div key=${t.id} className="toast" role="status">${t.art && html`<${Art} art=${t.art} bg="#fff" cls="toast-img" />`}${t.emo && html`<${Emo} k=${t.emo} cls="toast-emo" />`}<span>${t.msg}</span>${t.action && html`<button onClick=${() => { t.action.fn(); onDone(); }}>${t.action.label}</button>`}</div>`;
@@ -2262,6 +2281,8 @@ function App() {
   const [sheet, setSheet] = useState(null);
   const [jump, setJump] = useState(null);
   const [catSeg, setCatSeg] = useState(null);
+  const [welcomeS, setWelcomeS] = useState(null);
+  const welcome = useCallback((text) => setWelcomeS({ text, k: Date.now() }), []);
   const tTimer = useRef();
   const toast = useCallback((msg, action, extra) => {
     clearTimeout(tTimer.current);
@@ -2420,7 +2441,7 @@ function App() {
 
   const app = {
     S, act, nav, tab, stack, cart, qty, setQty, addToCart, addMany, reorder, toggleSaved, viewProduct, proceed, buyNow,
-    toast, openSheet: setSheet, catSeg, jump, clearJump: () => setJump(null), jumpToReel, placeOrder, resetAll, setStackDirect: setStack,
+    toast, openSheet: setSheet, catSeg, welcome, jump, clearJump: () => setJump(null), jumpToReel, placeOrder, resetAll, setStackDirect: setStack,
   };
   const top = stack[stack.length - 1];
   const darkTop = (!top && tab === 'explore') || (top && top.name === 'reels');
@@ -2447,6 +2468,7 @@ function App() {
         ${sheet && sheet.type === 'share' && html`<${ShareSheet} rid=${sheet.rid} onClose=${() => setSheet(null)} />`}
         ${sheet && sheet.type === 'help' && html`<${HelpChat} oid=${sheet.oid} onClose=${() => setSheet(null)} />`}
         <${Toast} t=${toastS} onDone=${() => setToastS(null)} />
+        ${welcomeS && html`<${WelcomeSplash} key=${welcomeS.k} text=${welcomeS.text} onDone=${() => setWelcomeS(null)} />`}
       </div>
     </div>
   <//>`;
