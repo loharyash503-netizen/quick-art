@@ -2246,11 +2246,11 @@ function BottomNav({ hidden, dark }) {
   </nav>`;
 }
 /* Short welcome between signing in and Home: a brand gradient opens from the centre,
-   the Q logo and greeting pop in, then the logo zooms through and the gradient closes as Home settles in (about 1.8s). */
+   the Q logo and greeting pop in, then the logo zooms through and Home comes in after it (under 2s). */
 function WelcomeSplash({ text, onDone }) {
   useEffect(() => {
     const quick = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const t = setTimeout(onDone, quick ? 700 : 1800);
+    const t = setTimeout(onDone, quick ? 700 : 1950);
     return () => clearTimeout(t);
   }, []);
   return html`<div className="welcome" role="status" aria-live="polite">
