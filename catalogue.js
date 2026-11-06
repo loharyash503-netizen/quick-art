@@ -174,6 +174,7 @@ const CAT_ROWS = [
   ['c-winsor-winton', 'winsor', 'Winton Oil Colour', 'paints', 'Oil', 'Tubes and sets', 'Oil colours for students and practice.'],
   ['c-winsor-galeria', 'winsor', 'Galeria Acrylic', 'paints', 'Acrylic', 'Tubes and sets', 'Acrylic colours for students and studios.'],
   ['c-daler-system3', 'daler', 'System3 Acrylic', 'paints', 'Acrylic', 'Tubes and sets', 'Acrylic colours for students and artists.'],
+  ['c-daler-system3-board', 'daler', 'System3 Acrylic Artboard', 'canvas', 'Boards', 'A4, pad of 10 boards, 1.4 mm', 'Acid-free boards for acrylic painting, A4 (210 × 297 mm).'],
   ['c-daler-georgian', 'daler', 'Georgian Oil Colour', 'paints', 'Oil', 'Tubes and sets', 'Oil colours for students and artists.'],
   ['c-daler-aquafine', 'daler', 'Aquafine Watercolour', 'paints', 'Watercolour', 'Tubes and sets', 'Watercolours for practice and studies.'],
   ['c-daler-simply', 'daler', 'Simply Sketchbook', 'sketchbooks', 'Sketchbooks', 'A5 and A4', 'Everyday sketchbooks for drawing.'],
@@ -291,7 +292,10 @@ const CAT_ROWS = [
   ['c-apple-pencil', 'apple', 'Apple Pencil', 'digital', 'Styluses', 'Single', 'Stylus for drawing on supported iPad models.'],
   ['c-apple-tips', 'apple', 'Apple Pencil Tips', 'digital', 'Accessories', 'Pack of 4', 'Replacement tips for Apple Pencil.'],
 ];
-const CATALOGUE = CAT_ROWS.map(([id, brand, name, cat, sub, size, desc]) => ({ id, brand, name, cat, sub, size, desc }));
+/* Product photos supplied for specific catalogue items (img/cat/<id>.jpg). Items without one show a category placeholder. */
+/* 'cover' fills the frame (lifestyle shots); 'contain' shows the whole pack (packaging shots) */
+const CAT_PHOTOS = { 'c-daler-system3': 'cover', 'c-daler-system3-board': 'contain' };
+const CATALOGUE = CAT_ROWS.map(([id, brand, name, cat, sub, size, desc]) => ({ id, brand, name, cat, sub, size, desc, photo: CAT_PHOTOS[id] ? 'img/cat/' + id + '.jpg' : null, fit: CAT_PHOTOS[id] || null }));
 const CITEM = Object.fromEntries(CATALOGUE.map((c) => [c.id, c]));
 
 /* Store products (data.js) use brand names; map them onto catalogue brands */

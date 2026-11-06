@@ -3,12 +3,14 @@
    Rule: a product only shows as available when a shop has entered its stock and confirmed it (verifiedAt). */
 
 /* ---------- Shared helpers ---------- */
+/* A catalogue item's picture: its supplied photo, otherwise the category placeholder */
+function catArt(c) { return c.photo ? { photo: c.photo } : { ph: c.cat }; }
 function refProduct(ref) {
   if (!ref) return null;
   if (ref.type === 'prod') return P[ref.id] || null;
   const c = CITEM[ref.id];
   if (!c) return null;
-  return { id: c.id, name: c.name, brand: (BRAND_CAT[c.brand] || {}).name || '', brandId: c.brand, art: { ph: c.cat }, bg: '#EEEAF4', cat: c.cat, size: c.size, desc: c.desc, catalogue: true };
+  return { id: c.id, name: c.name, brand: (BRAND_CAT[c.brand] || {}).name || '', brandId: c.brand, art: catArt(c), bg: '#EEEAF4', cat: c.cat, size: c.size, desc: c.desc, catalogue: true };
 }
 const listingAvailable = (l) => l.qty > 0 && !!l.verifiedAt;
 function offersFor(S, type, id) {
@@ -114,7 +116,7 @@ function CatalogueCard({ c }) {
   const best = bestOffer(S, 'cat', c.id);
   const b = BRAND_CAT[c.brand];
   return html`<button className="cat-card" onClick=${() => nav.push('citem', { id: c.id })}>
-    <span className="cat-card-img"><${Art} art=${{ ph: c.cat }} bg="#EEEAF4" /></span>
+    <span className="cat-card-img"><${Art} art=${catArt(c)} bg="#EEEAF4" /></span>
     <span className="cat-card-txt">
       <small>${b.name}</small>
       <b>${c.name}</b>
@@ -133,13 +135,12 @@ function CatalogueItem({ params }) {
   return html`<div className="screen-col">
     <${TopBar} title=${b.name} sub=${CCAT[c.cat].name} right=${html`<${CartBtn} />`} />
     <div className="stack-body pad-x citem">
-      <div className="citem-hero"><${Art} art=${{ ph: c.cat }} cls="citem-art" /><span className="ph-note">Product photo coming soon</span></div>
+      <div className=${'citem-hero' + (c.photo ? ' has-photo fit-' + c.fit : '')}><${Art} art=${catArt(c)} cls="citem-art" />${!c.photo && html`<span className="ph-note">Product photo coming soon</span>`}</div>
       <button className="brand-link" onClick=${() => nav.push('brand', { id: b.id })}>${b.name} ${I('chev')}</button>
       <h1 className="pdp-title">${c.name}</h1>
       <div className="chips wrap"><span className="chip static">${CCAT[c.cat].short}</span><span className="chip static">${c.sub}</span><span className="chip static">Typical pack: ${c.size}</span></div>
       <p className="desc">${c.desc}</p>
-      <${ShopOffers} type="cat" id=${c.id} name=${c.name} />
-      <p className="proto-note">Catalogue details are general. Each shop states its own pack size and price.</p>
+      <p className="proto-note">Catalogue details are general. Pack sizes and prices vary by shop.</p>
       <div className="spacer"></div>
     </div>
   </div>`;

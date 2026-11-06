@@ -1621,6 +1621,10 @@ h1, h2, h3 { text-wrap: balance; }
 .citem-hero { position: relative; height: 240px; border-radius: 24px; background: linear-gradient(160deg, #F7F5FA, #EEEAF4); display: grid; place-items: center; margin-top: 4px; }
 .citem-art { width: 100%; height: 100%; }
 .citem-art.ph img { width: 44%; height: 44%; }
+.citem-hero.has-photo { overflow: hidden; background: #fff; }
+.citem-hero.has-photo .art.photo img, .cat-card-img .art.photo img { mix-blend-mode: normal; }
+.citem-hero.fit-contain .art.photo img { object-fit: contain; }
+.cat-card-img .art.photo img { object-fit: cover; }
 .ph-note { position: absolute; left: 12px; bottom: 12px; font-size: 11.5px; font-weight: 600; color: var(--ink-2); background: rgba(255,255,255,.8); padding: 4px 10px; border-radius: var(--r-pill); }
 
 /* Offers from shops */
