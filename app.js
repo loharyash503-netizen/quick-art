@@ -2218,16 +2218,9 @@ const SCREENS = { insta: InstaScreen, login: Login, otp: Otp, fields: FieldsScre
 let _rk = 0;
 function mkRoute(name, params) { return { name, params: params || {}, k: ++_rk }; }
 
+// Mobile-only app: the phone layout is used at every screen size
 function useWide() {
-  const q = '(min-width: 1024px)';
-  const [wide, setWide] = useState(() => !!(window.matchMedia && matchMedia(q).matches));
-  useEffect(() => {
-    if (!window.matchMedia) return;
-    const m = matchMedia(q), f = () => setWide(m.matches);
-    m.addEventListener('change', f);
-    return () => m.removeEventListener('change', f);
-  }, []);
-  return wide;
+  return false;
 }
 function BottomNav({ hidden, dark }) {
   const { tab, nav, S } = useApp();

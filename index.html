@@ -1,13 +1,19 @@
 <meta charset="utf-8">
-<title>quickart</title>
+<title>Quick Art</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3F2470">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quick Art">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="app-icons/favicon-48.png">
+<link rel="apple-touch-icon" href="app-icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
-/* Layout: the app fills the window at every size. Phones get the single-column app with bottom navigation,
-   tablets get wider grids and centred dialogs, desktops get a left sidebar and centred content columns
-   (see "Responsive layout" at the end). The app commits to the light look from the source screens, so every colour is set explicitly. */
+/* Layout: a mobile-only app. Phones get it full screen; wider screens show it in a centred phone-sized frame (see "Mobile-only app" at the end). Every colour is set explicitly. */
 :root {
   color-scheme: light;
   /* Quick Art palette, from the Q logo: teal blue #47799A, indigo #425982, deep plum #360348 */
@@ -980,171 +986,24 @@ h1, h2, h3 { text-wrap: balance; }
 .tab-screen > .scroll { padding-inline: max(0px, calc((100% - var(--col)) / 2)); }
 .stack-screen > * { max-width: var(--col); margin-inline: auto; }
 
-@media (min-width: 600px) {
-  .stack-screen > .screen-col { position: relative; }
-  .grid2 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-  .cat-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  .field-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .vid-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .rail .pcard { width: 160px; }
-  .rail2 { grid-auto-columns: 150px; }
-  .reel-thumb { width: 132px; }
-  .quick { width: 72px; }
-  .pdp-hero { height: 380px; }
-  .seg { max-width: 440px; }
-  .banner { min-height: 160px; padding: 22px; }
-  .banner h2 { font-size: 20px; }
-  .banner-txt { max-width: min(58%, 420px); }
-  .banner-art { width: 230px; height: 176px; }
-  .banner-art .art { width: 136px; height: 136px; }
-  .bnav { padding-inline: max(0px, calc((100% - 640px) / 2)); }
-  .cartbar { width: calc(100% - 24px); max-width: 560px; margin: 16px auto 0; }
-  .cartbar.in-stack { margin: 0 auto calc(var(--hb) + 10px); }
-  .toast { left: var(--side); right: 0; margin-inline: auto; width: min(440px, calc(100% - var(--side) - 24px)); }
 
-  /* Sheets become centred dialogs */
-  .sheet-wrap { align-items: center; justify-content: center; padding: 24px; }
-  .sheet { width: min(100%, 480px); max-height: min(86%, 760px); border-radius: var(--r-xl); padding-bottom: 0; box-shadow: 0 24px 60px rgba(30,21,48,.28); animation: dialog-in .22s cubic-bezier(.2,.8,.2,1); }
-  .sheet.tall { width: min(100%, 560px); max-height: min(90%, 820px); }
-  .sheet-grab { visibility: hidden; }
-  @keyframes dialog-in { from { transform: translateY(16px) scale(.97); opacity: 0; } }
 
-  /* Reels keep a phone-shaped frame on wide screens */
-  .explore .feed, .explore-top { left: 0; right: 0; margin-inline: auto; width: min(100%, max(360px, 56vh)); }
-}
 
-@media (min-width: 768px) {
-  .field-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
 
-@media (min-width: 900px) {
-  .grid2 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .cat-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-}
 
-@media (min-width: 1024px) {
-  .device { --side: 248px; --nav-h: 0px; }
 
-  /* Sidebar navigation */
-  .bnav { top: 0; right: auto; width: var(--side); height: auto; display: flex; flex-direction: column; gap: 4px; padding: calc(var(--sb) + 18px) 14px 20px; border-top: 0; border-right: 1px solid var(--line); background: var(--card); }
-  .bnav-brand { display: block; padding: 0 12px 22px; font-size: 24px; font-weight: 800; letter-spacing: -.02em; background: linear-gradient(90deg, var(--purple) 0%, var(--grad-start) 55%, var(--pink) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .bnav-item { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 12px 0 6px; border-radius: var(--r-m); font-size: 14.5px; text-align: left; }
-  .bnav-ic { width: 36px; height: 36px; }
-  .bnav-item.on { background: var(--lav-100); }
-  .bnav-item.on .bnav-ic, .bnav-item.is-explore.on .bnav-ic { background: transparent; }
-  .bnav.dark { background: var(--night); border-right-color: rgba(255,255,255,.08); }
-  .bnav.dark .bnav-item.on { background: rgba(255,255,255,.12); }
-  .bnav.dark .bnav-item.on .bnav-ic { background: transparent; }
-  .dot-badge { top: -2px; right: -2px; }
-  @media (hover: hover) {
-    .bnav-item:not(.on):hover { background: var(--surface); }
-    .bnav.dark .bnav-item:not(.on):hover { background: rgba(255,255,255,.06); }
-  }
-  .bnav-item:active:not(:disabled) { transform: scale(.98); }
-  .tab-screen, .tabs-layer ~ .stack-screen { left: var(--side); }
 
-  .vid-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-  .cartbar { bottom: 16px; }
-  .rail .pcard { width: 180px; }
-  .rail2 { grid-auto-flow: row; grid-template-rows: none; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); overflow: visible; }
-
-  /* Product page: gallery left, details right */
-  .route-pdp .stack-body { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: 32px; align-content: start; align-items: start; padding: 0 16px; }
-  .route-pdp .pdp-hero { grid-column: 1; grid-row: 1; margin: calc(var(--sb) + 12px) 0 0; height: min(520px, 62vh); }
-  .route-pdp .thumbs { grid-column: 1; grid-row: 2; padding: 0; }
-  .route-pdp .pdp-body { grid-column: 2; grid-row: 1 / span 3; padding-top: calc(var(--sb) + 20px); padding-inline: 0; }
-  .route-pdp .stack-body > .sec, .route-pdp .stack-body > .spacer { grid-column: 1 / -1; }
-  .route-pdp .stack-body > .sec { margin-inline: -16px; }
-}
 
 /* With a mouse and keyboard, typing replaces the on-screen number pad */
-@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
-  .keypad { display: none; }
-  .auth.kb .auth-main { justify-content: center; padding-top: 0; }
-}
 
-@media (min-width: 1200px) {
-  .grid2 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  .cat-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
-  .field-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
+
+
 
 /* ---------- Desktop polish: alignment and spacing ---------- */
 /* Horizontal rows snap to the same 16px edge as the headings above them (all sizes) */
 .rail, .rail2, .scroll-x { scroll-padding-inline: 16px; }
 
-@media (min-width: 1024px) {
-  .device { --sb: 16px; }
 
-  /* Lavender headers become cards on the same edges as the content */
-  .home-head, .lav-head { margin: 16px 16px 0; border-radius: var(--r-xl); }
-  .home-head { padding: 20px 0 16px; }
-  .home-top { padding: 0 20px; }
-  .loc { display: inline-flex; width: auto; max-width: calc(100% - 40px); margin: 12px 20px 0; }
-  .eta-pill { margin-left: 10px; }
-  .search-bar { margin: 14px 20px 0; }
-  .quick-row { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); padding: 14px 12px 0; overflow: visible; }
-  .quick { width: auto; padding: 6px 0; }
-  .lav-head { padding: 18px 20px; }
-  .profile-head { padding: 20px; }
-
-  /* Section rhythm */
-  .banner { margin-top: 24px; }
-  .sec { margin-top: 36px; }
-  .sec-head { margin-bottom: 14px; }
-  .kit-card { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; margin: 12px 16px 16px; padding: 16px 20px; }
-  .kit-card .btn { justify-self: end; }
-
-  /* Rows wrap into grids instead of cutting cards off */
-  .rail:has(> .pcard) { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 12px; overflow: visible; }
-  .rail:has(> .pcard) .pcard { width: auto; }
-  .rail2 { gap: 12px; }
-  .rail.cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; overflow: visible; }
-  .rail.cats .cat-tile { width: auto; height: 100px; }
-  .rail:has(> .reel-thumb) { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; overflow: visible; }
-  .rail:has(> .reel-thumb) .reel-thumb { width: auto; }
-  .grid2 { gap: 16px; }
-
-  /* Action panels float over the right-hand column */
-  .route-pdp .bottom-bar { width: calc((100% - 64px) / 2.1); }
-  .route-pdp .stack-body { padding-bottom: 120px; }
-
-  /* Cart and checkout: list on the left; bill and pay button stacked on the right */
-  .route-cart, .route-checkout { --col: 1120px; }
-  .screen-col:has(> .desk-aside) { display: grid; grid-template-columns: minmax(0, 1fr) 360px; grid-template-rows: auto auto minmax(0, 1fr); column-gap: 28px; padding: 0 16px; }
-  .screen-col:has(> .desk-aside) > :first-child { grid-column: 1 / -1; margin-inline: 0; padding-inline: 0; }
-  .screen-col:has(> .desk-aside) > .lav-head { padding-inline: 20px; }
-  .screen-col:has(> .desk-aside) > .stack-body { grid-column: 1; grid-row: 2 / 4; min-height: 0; padding-inline: 0; }
-  .screen-col:has(> .desk-aside) > .stack-body > .pad-x, .screen-col:has(> .desk-aside) > .stack-body > .confirm { padding-inline: 0; margin-inline: 0; }
-  .screen-col:has(> .desk-aside) > .stack-body > .sec .sec-head, .screen-col:has(> .desk-aside) > .stack-body > .sec .rail { padding-inline: 0; }
-  .screen-col:has(> .desk-aside) > .desk-aside { display: grid; gap: 12px; grid-column: 2; grid-row: 2; padding-top: 14px; }
-  .screen-col:has(> .desk-aside) > .bottom-bar { grid-column: 2; grid-row: 3; align-self: start; margin-top: 12px; border: 1px solid var(--line); border-radius: var(--r-l); box-shadow: 0 12px 32px rgba(30,21,48,.10); }
-  .screen-col:has(> .desk-aside) .in-flow-bill { display: none; }
-  .desk-aside .bill { margin-top: 0; }
-  .co-summary { display: grid; gap: 10px; }
-  .co-summary h3 { font-size: 14.5px; }
-  .co-summary .co-items { margin: 0; max-height: 236px; overflow-y: auto; }
-  .route-pdp .bottom-bar { position: absolute; right: 16px; bottom: 16px; z-index: 5; border: 1px solid var(--line); border-radius: var(--r-l); box-shadow: 0 12px 32px rgba(30,21,48,.12); }
-
-  /* Order tracking: map left, details right */
-  .route-order { --col: 1180px; }
-  .route-order > .screen-col:not(:has(.track-hero)) { max-width: 720px; }
-  .route-order .screen-col:has(.track-hero) { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(360px, 1fr); grid-template-rows: minmax(0, 1fr); }
-  .route-order .track-hero { height: auto; margin: 16px 0 16px 16px; border-radius: var(--r-xl); overflow: hidden; border: 1px solid var(--line); }
-  .route-order .track-sheet { margin-top: 0; padding-top: 16px; border-radius: 0; box-shadow: none; background: transparent; }
-  .route-order .track-sheet::before { display: none; }
-  .route-order .map-live, .route-order .map-ctrl { bottom: 16px; }
-
-  /* Login and OTP: a centred card */
-  .route-login, .route-otp { background: radial-gradient(circle at 18% 12%, rgba(71,121,154,.14), transparent 42%), radial-gradient(circle at 82% 88%, rgba(71,121,154,.22), transparent 46%), var(--bg); }
-  .route-login > .auth, .route-otp > .auth { height: auto; margin: max(32px, 9vh) auto 32px; padding: 8px 24px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 28px; box-shadow: 0 24px 60px rgba(30,21,48,.10); }
-  .auth-top { min-height: 0; padding: 20px 4px 0; }
-  .auth-main, .auth.kb .auth-main { flex: none; justify-content: flex-start; padding: 28px 0 8px; }
-  .brandmark { font-size: 22px; padding: 0 2px; margin-bottom: 16px; }
-  .auth-title { font-size: 26px; font-weight: 600; letter-spacing: -.02em; padding: 0 2px; }
-  .auth-sub, .otp-label, .otp-resend { padding-inline: 2px; }
-  .terms { padding: 12px 0 8px; }
-}
 
 /* ---------- Login: animated Quick Art logo ----------
    Sequence: paint splash → Q mark spins in → ring pulse → wordmark wipes in → headline words rise →
@@ -1201,14 +1060,7 @@ h1, h2, h3 { text-wrap: balance; }
 .login.kb .login-hero { gap: 8px; margin-bottom: 12px; }
 .login.kb .auth-title { font-size: 17px; margin-bottom: 18px; }
 
-@media (min-width: 1024px) {
-  .login { --lh: 124px; }
-  .login.kb { --lh: 124px; }
-  .login .auth-title, .login.kb .auth-title { font-size: 26px; margin-bottom: 28px; }
-  .bnav-brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 22px; background: none; color: inherit; -webkit-background-clip: border-box; background-clip: border-box; }
-  .bb-mark { height: 34px; width: auto; }
-  .bb-word { height: 20px; width: auto; }
-}
+
 @media (prefers-reduced-motion: reduce) {
   .login *, .login *::before, .login *::after { animation-delay: 0s !important; }
   .brush-line path { stroke-dashoffset: 0; }
@@ -1257,14 +1109,8 @@ h1, h2, h3 { text-wrap: balance; }
 .cta-stack > span + span { margin-left: -10px; }
 .cta-stack .emo { width: 18px; height: 18px; }
 
-@media (min-width: 600px) {
-  .field-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-}
-@media (min-width: 900px) {
-  .field-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .fields-title { font-size: 34px; }
-  .fields-name { max-width: 380px; }
-}
+
+
 @media (prefers-reduced-motion: reduce) {
   .field-tile, .fields-title, .fields-sub, .fields-name { animation-delay: 0s !important; }
 }
@@ -1296,7 +1142,7 @@ h1, h2, h3 { text-wrap: balance; }
    A floating glass dock. A soft gradient pill glides behind the selected icon; the icon pops gently. */
 .bnav-track { display: contents; }
 .bnav-blob { display: none; }
-@media (max-width: 1023.98px) {
+
   .device { --nav-h: 80px; }
   .bnav { left: 0; right: 0; bottom: calc(10px + var(--hb)); width: min(calc(100% - 24px), 460px); height: 66px; margin-inline: auto; padding: 0; display: block;
     border: 1px solid rgba(255,255,255,.7); border-radius: 24px; background: rgba(255,255,255,.86); backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
@@ -1329,10 +1175,8 @@ h1, h2, h3 { text-wrap: balance; }
   .has-nav { padding-bottom: calc(var(--nav-h) + var(--hb) + 20px); }
   .cartbar { bottom: 8px; } /* the scroll padding already clears the dock */
   .toast { bottom: calc(var(--nav-h) + var(--hb) + 84px); }
-}
-@media (min-width: 600px) and (max-width: 1023.98px) {
-  .bnav { padding-inline: 0; }
-}
+
+
 @media (prefers-reduced-motion: reduce) {
   .bnav-blob { transition: none !important; }
 }
@@ -1408,8 +1252,8 @@ h1, h2, h3 { text-wrap: balance; }
 .brand-tile.wide { width: 100%; display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); text-align: left; }
 .brand-tile.wide .brand-mono { width: 52px; height: 52px; font-size: 17px; flex: none; }
 .brand-tile.wide b { font-size: 15px; }
-@media (min-width: 600px) { .brand-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1024px) { .rail.brands { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); overflow: visible; } .rail.brands .brand-tile { width: auto; } .brand-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+
 
 /* ---------- Reviews ---------- */
 .rating-link { display: inline-flex; align-items: center; gap: 4px; justify-self: start; border-radius: 8px; }
@@ -1553,7 +1397,7 @@ h1, h2, h3 { text-wrap: balance; }
 .bnav { z-index: 45; }
 /* An open panel always sits above the navigation */
 .device:has(.sheet-wrap) .bnav { z-index: 20; }
-@media (max-width: 1023.98px) {
+
   .device.nav-over .stack-screen > .screen-col { padding-bottom: calc(var(--nav-h) + var(--hb)); }
   .device.nav-over .stack-screen > .explore.stacked .feed { bottom: calc(var(--nav-h) + var(--hb)); }
   .device.nav-over .stack-screen .bottom-bar { border-radius: var(--r-l); margin: 0 10px 6px; padding-bottom: 12px; box-shadow: 0 6px 22px rgba(30,21,48,.10); border: 1px solid var(--line); }
@@ -1564,7 +1408,7 @@ h1, h2, h3 { text-wrap: balance; }
   .has-nav { padding-bottom: calc(var(--nav-h) + var(--hb) + 4px); }
   .cartbar { bottom: 0; margin-top: 12px; }
   .device:not(.nav-over) .toast { bottom: calc(var(--nav-h) + var(--hb) + 74px); }
-}
+
 
 /* ---------- Smoother, easier motion ---------- */
 .stack-screen { animation: page-in .34s var(--ease); }
@@ -1681,7 +1525,15 @@ h1, h2, h3 { text-wrap: balance; }
 .ig-perms .yes .ic { color: var(--good); }
 .ig-perms .no .ic { color: var(--bad); }
 .spinner.xs { width: 18px; height: 18px; border-width: 2.5px; margin: 0; border-color: rgba(255,255,255,.35); border-top-color: #fff; }
-@media (min-width: 1024px) { .ig-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+
+/* ---------- Mobile-only app ----------
+   The app always uses its phone layout. On wider screens it sits centred in a phone-sized frame. */
+@media (min-width: 500px) {
+  body { background: radial-gradient(circle at 15% 10%, rgba(71,121,154,.22), transparent 40%), radial-gradient(circle at 85% 90%, rgba(54,3,72,.16), transparent 45%), #ECE8F2; }
+  .stage { display: grid; place-items: center; min-height: 100%; padding: 16px; }
+  .device { width: 400px; height: min(860px, calc(100vh - 32px)); border-radius: 36px; box-shadow: 0 0 0 9px #1E1530, 0 30px 70px rgba(30,21,48,.35); --sb: 14px; --hb: 6px; }
+}
 </style>
 
 <div id="root"></div>
@@ -1691,3 +1543,9 @@ h1, h2, h3 { text-wrap: balance; }
 <script src="assets.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script>
+/* Installable app: register the service worker where the browser allows it (https or localhost) */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+</script>

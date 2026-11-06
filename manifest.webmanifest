@@ -1,0 +1,16 @@
+{
+  "name": "Quick Art",
+  "short_name": "Quick Art",
+  "description": "Art and design supplies delivered in minutes.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBFAFC",
+  "theme_color": "#3F2470",
+  "icons": [
+    { "src": "app-icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "app-icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "app-icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
