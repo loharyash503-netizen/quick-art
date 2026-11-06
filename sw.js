@@ -1,7 +1,7 @@
 /* Quick Art service worker: makes the app installable and keeps it opening offline.
    Network first, so a new deploy is picked up on the next visit; the cache is the fallback. */
-const CACHE = 'quickart-v1';
-const CORE = ['./', 'index.html', 'app.js', 'data.js', 'assets.js', 'manifest.webmanifest', 'app-icons/icon-192.png'];
+const CACHE = 'quickart-v2';
+const CORE = ['./', 'index.html', 'app.js', 'data.js', 'catalogue.js', 'brands.js', 'assets.js', 'manifest.webmanifest', 'app-icons/icon-192.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));

@@ -293,7 +293,7 @@ const RAW = [
     'Permanent markers for cotton and blends. Heat-set with an iron for wash-fast colour.', { Fabrics: 'Cotton, cotton blends', Fixing: 'Iron for 2 min' }],
   ['p17', '550 Whiteboard Markers, Pack of 4', 'Artline', 'markers', 'Whiteboard', { kind: 'markers', cols: [COL.black, COL.blue, COL.red, COL.green] }, [['4 colours', 120, 140, 30]], 4.5, 4120,
     'Low-odour dry-erase markers that wipe clean. Good for workshops and critiques.', { Tip: 'Bullet, 2 mm' }],
-  ['p18', 'Brush Pens, Set of 12', 'Doms', 'markers', 'Brush pens', { kind: 'fineliners', body: '#f2f2f2', cols: RB.slice(0, 6) }, [['12 shades', 199, 240, 0]], 4.1, 760,
+  ['p18', 'Brush Pens, Set of 12', 'DOMS', 'markers', 'Brush pens', { kind: 'fineliners', body: '#f2f2f2', cols: RB.slice(0, 6) }, [['12 shades', 199, 240, 0]], 4.1, 760,
     'Flexible brush tips for hand lettering and quick colour.', { Tip: 'Flexible fibre brush' }],
   ['p19', 'Sketchbook, 140 gsm, 100 Pages', 'Brustro', 'paper', 'Sketchbooks', { kind: 'sketchbook' }, [['A5', 160, 199, 25], ['A4', 220, 275, 20], ['A3', 390, 450, 5]], 4.6, 6240,
     'Acid-free 140 gsm paper that takes pencil, ink and light washes. Lay-flat spiral binding.', { Paper: '140 gsm, acid-free', Binding: 'Spiral, lay-flat', Pages: '100' }, 1],
@@ -337,15 +337,15 @@ const RAW = [
     'Dark, smooth graphite that resists breaking. A favourite for school, sketching and exam sheets.', { Grade: 'Extra dark', Includes: 'Free eraser and sharpener' }],
   ['p39', 'Non-Dust Erasers, Pack of 20', 'Apsara', 'pencils', 'Erasers', { kind: 'eraser', col: '#C62828' }, [['Pack of 20', 50, 60, 50]], 4.5, 6100,
     'Soft erasers that lift graphite cleanly and roll the dust into one strand instead of crumbs.', { Material: 'Polymer', Dust: 'Non-dust, single strand' }],
-  ['p40', '621 HB Pencils, Pack of 10', 'Natraj', 'pencils', 'Graphite', { kind: 'pencils', grey: true, box: '#F9A825' }, [['Pack of 10', 45, 50, 60]], 4.5, 9400,
+  ['p40', '621 HB Pencils, Pack of 10', 'Nataraj', 'pencils', 'Graphite', { kind: 'pencils', grey: true, box: '#F9A825' }, [['Pack of 10', 45, 50, 60]], 4.5, 9400,
     'The classic striped HB pencil with an eraser tip. Smooth, even lines for writing and rough sketches.', { Grade: 'HB', Tip: 'Eraser tipped' }],
-  ['p41', 'Geometry Box, Full Set', 'Natraj', 'drafting', 'Geometry sets', { kind: 'ruler' }, [['Full set', 120, 140, 25]], 4.3, 3150,
+  ['p41', 'Geometry Box, Full Set', 'Nataraj', 'drafting', 'Geometry sets', { kind: 'ruler' }, [['Full set', 120, 140, 25]], 4.3, 3150,
     'Metal box with compass, divider, protractor, two set squares, ruler, pencil, eraser and sharpener.', { Includes: '9 instruments', Box: 'Metal, hinged' }],
-  ['p42', 'Wax Crayons', 'Doms', 'pencils', 'Crayons & pastels', { kind: 'chalk' }, [['24 shades', 99, 110, 30], ['12 shades', 55, 60, 40]], 4.4, 5230,
+  ['p42', 'Wax Crayons', 'DOMS', 'pencils', 'Crayons & pastels', { kind: 'chalk' }, [['24 shades', 99, 110, 30], ['12 shades', 55, 60, 40]], 4.4, 5230,
     'Bright, non-toxic wax crayons that glide smoothly and do not snap easily. Great for colouring and texture rubbings.', { Type: 'Wax crayons', Safety: 'Non-toxic' }],
   ['p43', 'Oil Pastels', 'Kokuyo Camlin', 'pencils', 'Crayons & pastels', { kind: 'chalk' }, [['50 shades', 210, 240, 18], ['25 shades', 110, 125, 26]], 4.6, 4120,
     'Creamy, blendable oil pastels with strong colour. Layer, smudge and scratch for rich textures.', { Type: 'Soft oil pastels', Blending: 'Finger or tortillon' }],
-  ['p44', 'Water Colour Cakes, 12 Shades', 'Doms', 'paints', 'Watercolour', { kind: 'watercolor', box: '#ffffff' }, [['12 shades', 60, 70, 35]], 4.2, 2780,
+  ['p44', 'Water Colour Cakes, 12 Shades', 'DOMS', 'paints', 'Watercolour', { kind: 'watercolor', box: '#ffffff' }, [['12 shades', 60, 70, 35]], 4.2, 2780,
     'Bright watercolour cakes with a brush, sized for school projects and quick colour studies.', { Type: 'Student watercolour', Includes: 'Round brush' }],
   ['p45', 'Connector Sketch Pens, 20 Shades', 'Faber-Castell', 'markers', 'Sketch pens', { kind: 'markers' }, [['20 shades', 200, 230, 22], ['10 shades', 105, 120, 30]], 4.7, 7340,
     'Washable felt-tip pens whose caps click together. Bright, even ink for colouring, charts and doodles.', { Ink: 'Washable', Caps: 'Click to connect' }],
@@ -374,16 +374,7 @@ PRODUCTS.forEach((p) => {
 const PHOTOS = new Set(Array.from({ length: 50 }, (_, i) => 'p' + (i + 1)));
 PRODUCTS.forEach((p) => { if (PHOTOS.has(p.id)) p.art = { ...p.art, photo: 'img/' + p.id + '.jpg' }; });
 const BRANDS = [...new Set(PRODUCTS.map((p) => p.brand))].sort();
-/* Brands shown in "Shop by brand". Monogram tiles only: no brand logos are reproduced. */
-const BRAND_INFO = [
-  ['Apsara', 'Pencils, erasers'], ['Natraj', 'Pencils, geometry'], ['Doms', 'Crayons, colours'], ['Kokuyo Camlin', 'Paints, pastels'],
-  ['Faber-Castell', 'Pencils, sketch pens'], ['Classmate', 'Drawing books'], ['Staedtler', 'Pens, drafting'], ['Luxor', 'Highlighters'],
-  ['Pidilite', 'Glue, craft'], ['Brustro', 'Artist supplies'], ['Winsor & Newton', 'Watercolour'], ['Sakura', 'Inking, brush pens'],
-].map(([name, tag], i) => ({ name, tag, short: name === 'Kokuyo Camlin' ? 'Camlin' : name, mono: monogram(name === 'Kokuyo Camlin' ? 'Camlin' : name), hue: i }));
-function monogram(n) {
-  const w = n.replace(/[^A-Za-z ]/g, ' ').split(/\s+/).filter(Boolean);
-  return w.length > 1 ? (w[0][0] + w[1][0]).toUpperCase() : w[0].slice(0, 2);
-}
+/* Brand directory, catalogue and shop listings live in catalogue.js */
 
 /* Sample customer reviews (prototype data), generated per product so every page has some. */
 const REVIEWERS = ['Ananya S.', 'Rohan M.', 'Priya K.', 'Kabir J.', 'Meera T.', 'Arjun P.', 'Sneha R.', 'Dev V.', 'Isha N.', 'Yuvraj B.'];

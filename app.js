@@ -48,6 +48,10 @@ function lineSnap(pid, vi, qty) {
   const v = P[pid].variants[vi];
   return { pid, vi, qty, price: v.price, mrp: v.mrp, label: v.label };
 }
+/* An order item's product: store products by id, shop-listed catalogue items from their snapshot */
+function itemOf(i) {
+  return P[i.pid] || { name: i.name || 'Item', brand: i.brand || '', art: i.art || { ph: 'paints' }, bg: '#EEEAF4' };
+}
 function billOf(lines) {
   const items = lines.reduce((a, l) => a + l.price * l.qty, 0);
   const mrp = lines.reduce((a, l) => a + l.mrp * l.qty, 0);
@@ -57,6 +61,14 @@ function billOf(lines) {
 function cartLinesOf(S) {
   return Object.entries(S.cart)
     .map(([key, qty]) => {
+      if (key.startsWith('L:')) {
+        const l = (S.listings || []).find((x) => x.id === key.slice(2));
+        const shop = l && (S.shops || []).find((x) => x.id === l.shopId);
+        const p = l && refProduct(l.ref);
+        if (!l || !shop || !p || qty <= 0) return null;
+        const label = `${l.size} · ${shop.name}`;
+        return { key, pid: key, vi: 0, qty, price: l.price, mrp: l.mrp || l.price, label, p, v: { label, price: l.price, mrp: l.mrp || l.price, stock: l.qty }, listingId: l.id, shopId: shop.id, ref: l.ref };
+      }
       const [pid, vi] = key.split(':');
       const p = P[pid];
       if (!p || !p.variants[+vi] || qty <= 0) return null;
@@ -87,6 +99,7 @@ function freshState() {
     cart: {}, saved: [], savedReels: [], liked: [], notify: [], recent: [],
     myReviews: {}, helpful: [],
     insta: { connected: false, handle: '' },
+    shops: [], listings: [], requests: [], reservations: [], myShop: null,
     wallet: { balance: 250, txns: [{ id: 't1', label: 'Welcome bonus', amt: 250, at: Date.now() - 2 * 864e5 }] },
     searches: ['acrylic paint', 'fineliner'],
     orders: [{ id: 'QA20417', items, bill: billOf(items), address: ADDRS[0], pay: 'upi', slot: 'now', placedAt: Date.now() - 3 * 864e5, eta: 14, cancelled: false, sample: true }],
@@ -174,6 +187,9 @@ function I(name, opts = {}) {
   return html`<span className=${'ic ' + (opts.cls || '')} dangerouslySetInnerHTML=${{ __html: iconSvg(name, opts.fill) }}></span>`;
 }
 function Art({ art, bg, cls, zoom }) {
+  if (art && art.ph) {
+    return html`<span className=${'art ph ' + (cls || '')} style=${bg ? { background: bg } : null}><img src=${asset((CCAT[art.ph] || CCATS[0]).img)} alt="" draggable="false" /></span>`;
+  }
   if (art.photo) {
     return html`<span className=${'art photo ' + (cls || '') + (zoom ? ' zoom' : '')} style=${bg ? { background: bg } : null}><${Photo} src=${asset(art.photo)} /></span>`;
   }
@@ -192,16 +208,6 @@ function Emo({ k, cls }) {
 /* Detailed 3D category icon, generated in the logo's colours */
 function Cat3D({ c }) {
   return html`<img className="emo cat3d" src=${asset('icons3d/' + c.id + '.png')} alt="" draggable="false" />`;
-}
-function BrandTile({ b, wide }) {
-  const { nav } = useApp();
-  const mine = PRODUCTS.filter((p) => p.brand === b.name);
-  const n = mine.length;
-  const hero = mine.find((p) => p.art.photo);
-  return html`<button className=${'brand-tile' + (wide ? ' wide' : '')} style=${{ '--h': b.hue }} onClick=${() => nav.push('plp', { brand: b.name })} aria-label=${`${b.name}, ${n} products`}>
-    <span className="brand-pic" aria-hidden="true">${hero ? html`<img src=${asset(hero.art.photo)} alt="" loading="lazy" />` : html`<span className="brand-mono">${b.mono}</span>`}<span className="brand-badge">${b.mono}</span></span>
-    <span className="brand-txt"><b>${b.short}</b><small>${wide ? b.tag + ' · ' : ''}${n} item${n === 1 ? '' : 's'}</small></span>
-  </button>`;
 }
 function WalletChip() {
   const { S, openSheet } = useApp();
@@ -588,7 +594,7 @@ function Home() {
     return list;
   }, [fields.join()]);
   const deals = useMemo(() => [...PRODUCTS].filter((p) => dvOf(p).stock > 0).sort((a, b) => pctOff(dvOf(b)) - pctOff(dvOf(a))).slice(0, 10), []);
-  const buyAgain = [...new Set(S.orders.filter((o) => !o.cancelled).flatMap((o) => o.items.map((i) => i.pid)))].slice(0, 8).map((id) => P[id]);
+  const buyAgain = [...new Set(S.orders.filter((o) => !o.cancelled).flatMap((o) => o.items.map((i) => i.pid)))].filter((id) => P[id]).slice(0, 8).map((id) => P[id]);
   const recent = S.recent.filter((id) => P[id]).slice(0, 8).map((id) => P[id]);
   const reels = [...REELS].sort((a, b) => b.fields.filter((f) => fields.includes(f)).length - a.fields.filter((f) => fields.includes(f)).length).slice(0, 6);
   const name = S.user.name && S.user.name !== 'there' ? S.user.name : 'there';
@@ -633,8 +639,13 @@ function Home() {
     </section>`}
 
     <section className="sec">
-      <${SecHead} title="Shop by brand" sub="Trusted names in Indian classrooms and studios" action="All brands" onAction=${() => nav.tab('categories', 'brands')} />
-      <div className="rail brands">${BRAND_INFO.map((b) => html`<${BrandTile} key=${b.name} b=${b} />`)}</div>
+      <${SecHead} title="Shop by brand" sub="Trusted names in Indian classrooms and studios" action="All brands" onAction=${() => nav.push('brands')} />
+      <div className="rail brands">${BRANDS_CAT.filter((b) => b.pop).map((b) => html`<${BrandTile} key=${b.id} b=${b} />`)}</div>
+    </section>
+
+    <section className="sec">
+      <${SecHead} title="Professional art brands" sub="Artist-grade paints, papers and markers" action="See all" onAction=${() => nav.push('brands')} />
+      <div className="rail brands">${BRANDS_CAT.filter((b) => b.pro).map((b) => html`<${BrandTile} key=${b.id} b=${b} />`)}</div>
     </section>
 
     <section className="sec">
@@ -695,7 +706,7 @@ function Categories() {
       <button role="tab" aria-selected=${seg === 'fields'} className=${seg === 'fields' ? 'on' : ''} onClick=${() => setSeg('fields')}>By field</button>
       <button role="tab" aria-selected=${seg === 'brands'} className=${seg === 'brands' ? 'on' : ''} onClick=${() => setSeg('brands')}>Brands</button>
     </div>
-    ${seg === 'brands' && html`<div className="brand-grid pad-x">${BRAND_INFO.map((b) => html`<${BrandTile} key=${b.name} b=${b} wide />`)}</div>`}
+    ${seg === 'brands' && html`<${BrandsBrowser} embedded />`}
     ${seg === 'brands' ? null : seg === 'materials' ? html`<div className="cat-grid pad-x">
       ${CATS.map((c) => html`<button key=${c.id} className="cat-cell" onClick=${() => nav.push('plp', { cat: c.id })}>
         <span className="cat-cell-ic" style=${{ background: c.bg }} aria-hidden="true"><${Cat3D} c=${c} /></span>
@@ -793,7 +804,7 @@ function PLP({ params }) {
   const [sort, setSort] = useState('rel');
   const loading = useLoading([sub, JSON.stringify(f), sort]);
   const list = applyFilters(sub === 'All' ? base : base.filter((p) => p.sub === sub), f, sort);
-  const title = brand ? (BRAND_INFO.find((b) => b.name === brand) || { short: brand }).short : c ? c.name : fd ? fd.name : collection === 'all' ? 'All products' : 'Best deals';
+  const title = brand ? (BRAND_CAT[brandIdOf(brand)] || { name: brand }).name : c ? c.name : fd ? fd.name : collection === 'all' ? 'All products' : 'Best deals';
   const essentials = fd ? fd.kit.map((id) => P[id]).filter((p) => dvOf(p).stock > 0).slice(0, 4) : [];
   return html`<div className="screen-col">
     <${TopBar} title=${title} sub=${`${base.length} items`} right=${html`<button className="round-btn" aria-label="Search" onClick=${() => nav.push('search')}>${I('search')}</button><${CartBtn} />`} />
@@ -867,7 +878,9 @@ function Search({ params }) {
           ${!res.exact && html`<p className="notice pad-x">${I('info')} No exact match for “${done}”. Showing related items.</p>`}
           <${FilterBar} f=${f} setF=${setF} sort=${sort} setSort=${setSort} brands=${[...new Set(res.list.map((p) => p.brand))].sort()} base=${res.list} />
           <p className="count-line pad-x" aria-live="polite">${loading ? 'Searching…' : `${list.length} result${list.length === 1 ? '' : 's'} for “${done}”`}</p>
-          <${ResultsGrid} list=${list} loading=${loading} filtered=${filterCount(f) > 0} onClear=${() => setF(NO_FILTERS)} />` : html`
+          <${ResultsGrid} list=${list} loading=${loading} filtered=${filterCount(f) > 0} onClear=${() => setF(NO_FILTERS)} />
+          <${CatalogueResults} q=${done} />` : html`
+          <${CatalogueResults} q=${done} />
           <${Empty} icon="search" title=${`No results for “${done}”`} text="Check the spelling, or try a broader word like “marker” or “paper”.">
             <div className="chips wrap center">${POPULAR.slice(0, 4).map((t) => html`<button key=${t} className="chip" onClick=${() => submit(t)}>${t}</button>`)}</div>
             <button className="btn ghost" onClick=${() => toast(`Request noted. We'll tell you if we stock “${done}”.`)}>Ask us to stock it</button>
@@ -976,6 +989,7 @@ function PDP({ params }) {
           <span className="reel-thumb-art" dangerouslySetInnerHTML=${{ __html: sceneSvg(r.scene) }}></span><span className="reel-thumb-play" aria-hidden="true">${I('play')}</span><span className="reel-thumb-cap">${r.title}</span>
         </button>`)}</div>
       </section>`}
+      <div className="pad-x"><${ShopOffers} type="prod" id=${p.id} name=${p.name} title="Also at local shops" /></div>
       <${Reviews} p=${p} />
       <section className="sec">
         <${SecHead} title="Pairs well with" />
@@ -1462,7 +1476,7 @@ function Cart() {
     .filter((id) => !inCartIds.includes(id) && dvOf(P[id]).stock > 0).slice(0, 8).map((id) => P[id]);
   const remove = (l) => { setQty(l.pid, l.vi, 0); toast(`Removed ${l.p.name}`, { label: 'Undo', fn: () => setQty(l.pid, l.vi, l.qty) }); };
   const saveForLater = (l) => {
-    act((s) => { delete s.cart[l.key]; if (!s.saved.includes(l.pid)) s.saved.push(l.pid); });
+    act((s) => { delete s.cart[l.key]; const id = l.listingId ? (l.ref.type === 'prod' ? l.ref.id : null) : l.pid; if (id && !s.saved.includes(id)) s.saved.push(id); });
     toast('Moved to saved items', { label: 'Undo', fn: () => act((s) => { s.cart[l.key] = l.qty; }) });
   };
   return html`<div className="screen-col">
@@ -1479,7 +1493,7 @@ function Cart() {
       ${!cart.count ? html`<${Empty} icon="cart" title="Your cart is empty" text="Add paints, paper or tools and they'll show up here." cta="Browse best deals" onCta=${() => nav.replace('plp', { collection: 'deals' })} />` : html`
         <div className="cart-list pad-x">
           ${cart.lines.map((l) => html`<article key=${l.key} className="cart-item">
-            <button className="cart-img" style=${{ background: l.p.bg }} onClick=${() => nav.push('pdp', { pid: l.pid, vi: l.vi })} aria-label=${`Open ${l.p.name}`}><${Art} art=${l.p.art} /></button>
+            <button className="cart-img" style=${{ background: l.p.bg }} onClick=${() => (l.listingId ? (l.ref.type === 'cat' ? nav.push('citem', { id: l.ref.id }) : nav.push('pdp', { pid: l.ref.id })) : nav.push('pdp', { pid: l.pid, vi: l.vi }))} aria-label=${`Open ${l.p.name}`}><${Art} art=${l.p.art} /></button>
             <div className="cart-info">
               <b className="cart-name">${l.p.brand}</b>
               <span className="cart-sub">${l.p.name}</span>
@@ -1666,7 +1680,7 @@ function Confirm({ params }) {
           ${now && html`<${StageDots} idx=${0} />`}
         </div>
         <div className="card cf-card" style=${{ '--i': 1 }}>
-          <div className="cf-row between"><b>${n} item${n === 1 ? '' : 's'}</b><span className="thumb-strip sm">${o.items.slice(0, 5).map((i) => html`<${Art} key=${i.pid + i.vi} art=${P[i.pid].art} bg=${P[i.pid].bg} />`)}</span></div>
+          <div className="cf-row between"><b>${n} item${n === 1 ? '' : 's'}</b><span className="thumb-strip sm">${o.items.slice(0, 5).map((i) => html`<${Art} key=${i.pid + i.vi} art=${itemOf(i).art} bg=${itemOf(i).bg} />`)}</span></div>
           <div className="bill-row"><span>Paid with</span><span>${PAYS[o.pay].label}</span></div>
           <div className="bill-row total"><span>${o.pay === 'cod' ? 'To pay on delivery' : 'Amount paid'}</span><span>${inr(o.bill.total)}</span></div>
         </div>
@@ -1912,13 +1926,14 @@ function Orders() {
   const past = all.filter((x) => ['delivered', 'cancelled'].includes(x.st.key));
   return html`<div className="scroll has-nav">
     <header className="plain-head"><h1>Your orders</h1><${CartBtn} /></header>
+    <${Reservations} />
     ${!all.length && html`<${Empty} icon="orders" title="No orders yet" text="Your orders and their live status will show up here." cta="Start shopping" onCta=${() => nav.tab('home')} />`}
     ${active.length > 0 && html`<section className="sec pad-x"><h2 className="h-s">On the way</h2>
       ${active.map(({ o, st }) => html`<button key=${o.id} className="track-card" onClick=${() => nav.push('order', { oid: o.id })}>
         ${st.key !== 'scheduled' && html`<${TrackMap} o=${o} st=${st} now=${now} compact />`}
         <div className="track-top"><div><b className="track-eta">${st.key === 'scheduled' ? SLOTS[o.slot] : `${st.left} min`}</b><small>${st.key === 'scheduled' ? 'Scheduled delivery' : STAGES[st.idx][2]}</small></div><${StatusPill} st=${st} /></div>
         ${st.key !== 'scheduled' && html`<${StageDots} idx=${st.idx} />`}
-        <div className="track-foot"><span className="thumb-strip sm">${o.items.slice(0, 4).map((i) => html`<${Art} key=${i.pid + i.vi} art=${P[i.pid].art} bg=${P[i.pid].bg} />`)}</span><span className="link">Track ${I('right')}</span></div>
+        <div className="track-foot"><span className="thumb-strip sm">${o.items.slice(0, 4).map((i) => html`<${Art} key=${i.pid + i.vi} art=${itemOf(i).art} bg=${itemOf(i).bg} />`)}</span><span className="link">Track ${I('right')}</span></div>
       </button>`)}
     </section>`}
     ${past.length > 0 && html`<section className="sec pad-x"><h2 className="h-s">Past orders</h2>
@@ -1926,7 +1941,7 @@ function Orders() {
         <button className="order-hit" onClick=${() => nav.push('order', { oid: o.id })}>
           <span className="order-top"><b>#${o.id}</b><${StatusPill} st=${st} /></span>
           <span className="order-meta">${dayTime(o.placedAt)} · ${o.items.reduce((a, i) => a + i.qty, 0)} items · ${inr(o.bill.total)}${o.sample ? ' · sample' : ''}</span>
-          <span className="thumb-strip sm">${o.items.slice(0, 5).map((i) => html`<${Art} key=${i.pid + i.vi} art=${P[i.pid].art} bg=${P[i.pid].bg} />`)}</span>
+          <span className="thumb-strip sm">${o.items.slice(0, 5).map((i) => html`<${Art} key=${i.pid + i.vi} art=${itemOf(i).art} bg=${itemOf(i).bg} />`)}</span>
         </button>
         <button className="btn lav sm" onClick=${() => reorder(o)}>${I('refresh')} Reorder</button>
       </article>`)}</div>
@@ -1946,7 +1961,7 @@ function OrderDetail({ params }) {
   const live = !['delivered', 'cancelled'].includes(st.key);
   const canCancel = ['placed', 'packed', 'scheduled'].includes(st.key);
   const doCancel = () => {
-    act((s) => { const x = s.orders.find((y) => y.id === o.id); x.cancelled = true; x.cancelReason = reason; });
+    act((s) => { const x = s.orders.find((y) => y.id === o.id); x.cancelled = true; x.cancelReason = reason; x.items.filter((i) => i.listingId).forEach((i) => { const l = (s.listings || []).find((y) => y.id === i.listingId); if (l) l.qty += i.qty; }); });
     setCancelling(false);
     toast(o.pay === 'cod' ? 'Order cancelled' : `Order cancelled. ${inr(o.bill.total)} will be refunded in 3 to 5 working days.`);
   };
@@ -1980,7 +1995,7 @@ function OrderDetail({ params }) {
         </li>`)}
       </ol>`}
       <h2 className="h-s">Items</h2>
-      <ul className="co-items">${o.items.map((i) => html`<li key=${i.pid + i.vi}><${Art} art=${P[i.pid].art} bg=${P[i.pid].bg} /><span>${P[i.pid].name}<small>${i.label} × ${i.qty}</small></span><b>${inr(i.price * i.qty)}</b></li>`)}</ul>
+      <ul className="co-items">${o.items.map((i) => html`<li key=${i.pid + i.vi}><${Art} art=${itemOf(i).art} bg=${itemOf(i).bg} /><span>${itemOf(i).name}<small>${i.label} × ${i.qty}</small></span><b>${inr(i.price * i.qty)}</b></li>`)}</ul>
       <${BillCard} b=${o.bill} />
       <div className="card info-card">
         <div className="deliv-row">${I('pin')}<div><b>${o.address.label}</b><small>${o.address.line}, ${o.address.area}</small></div></div>
@@ -2068,6 +2083,8 @@ function Profile() {
     <section className="list-sec pad-x">
       <${Row} icon="heart" label="Saved items" value=${S.saved.length} onClick=${() => nav.push('saved', { tab: 'items' })} />
       <${Row} icon="bookmark" label="Saved videos" value=${S.savedReels.length} onClick=${() => nav.push('saved', { tab: 'videos' })} />
+      <${Row} icon="tag" label="All brands" value=${BRANDS_CAT.length} onClick=${() => nav.push('brands')} />
+      <${Row} icon="store" label="Sell on Quick Art" value=${S.myShop ? 'Your shop' : 'For shop owners'} onClick=${() => nav.push('shop')} />
       <${Row} icon="reelcam" label="Instagram" value=${S.insta && S.insta.connected ? '@' + S.insta.handle : 'Not linked'} onClick=${() => nav.push('insta')} />
       <${Row} icon="orders" label="Order history" value=${S.orders.length} onClick=${() => nav.tab('orders')} />
       <${Row} icon="pin" label="Saved addresses" value=${S.addresses.length} onClick=${() => nav.push('addresses')} />
@@ -2216,7 +2233,7 @@ const TABS = [
   { id: 'orders', label: 'Orders', icon: 'orders', C: Orders },
   { id: 'profile', label: 'Profile', icon: 'user', C: Profile },
 ];
-const SCREENS = { insta: InstaScreen, login: Login, otp: Otp, fields: FieldsScreen, search: Search, plp: PLP, pdp: PDP, cart: Cart, checkout: Checkout, paying: Paying, confirm: Confirm, order: OrderDetail, saved: Saved, addresses: Addresses, help: Help, pricing: Pricing, reels: ReelsScreen };
+const SCREENS = { brands: BrandsScreen, brand: BrandDetail, citem: CatalogueItem, shop: ShopPortal, insta: InstaScreen, login: Login, otp: Otp, fields: FieldsScreen, search: Search, plp: PLP, pdp: PDP, cart: Cart, checkout: Checkout, paying: Paying, confirm: Confirm, order: OrderDetail, saved: Saved, addresses: Addresses, help: Help, pricing: Pricing, reels: ReelsScreen };
 let _rk = 0;
 function mkRoute(name, params) { return { name, params: params || {}, k: ++_rk }; }
 
@@ -2309,6 +2326,13 @@ function App() {
   }, [cart.bill.gap]);
   const qty = (pid, vi) => Sref.current.cart[pid + ':' + vi] || 0;
   const setQty = (pid, vi, q) => {
+    if (String(pid).startsWith('L:')) {
+      const l = Sref.current.listings.find((x) => x.id === pid.slice(2));
+      const max = l ? l.qty : 0;
+      if (q > max) { toast(`Only ${max} in stock at this shop`); q = max; }
+      act((s) => { if (q <= 0) delete s.cart[pid]; else s.cart[pid] = q; });
+      return;
+    }
     const v = P[pid].variants[vi];
     if (q > v.stock) { toast(`Only ${v.stock} in stock`); q = v.stock; }
     act((s) => { const k = pid + ':' + vi; if (q <= 0) delete s.cart[k]; else s.cart[k] = q; });
@@ -2365,7 +2389,7 @@ function App() {
     if (ok.length) flyToCart(P[ok[0][0]].art);
     toast(ok.length ? msg + (skipped ? ` (${skipped} unavailable)` : '') : 'These items are unavailable right now', ok.length ? { label: 'View cart', fn: () => nav.push('cart') } : null);
   };
-  const reorder = (o) => addMany(o.items.map((i) => [i.pid, i.vi, i.qty]), `Added ${o.items.length} items from #${o.id}`);
+  const reorder = (o) => addMany(o.items.filter((i) => P[i.pid]).map((i) => [i.pid, i.vi, i.qty]), `Added ${o.items.length} items from #${o.id}`);
   const toggleSaved = (pid) => {
     const on = Sref.current.saved.includes(pid);
     act((s) => { s.saved = on ? s.saved.filter((x) => x !== pid) : [pid, ...s.saved]; });
@@ -2386,12 +2410,17 @@ function App() {
   };
   const placeOrder = () => {
     const s0 = Sref.current;
-    const items = cartLinesOf(s0).map(({ pid, vi, qty: q }) => lineSnap(pid, vi, q));
+    const lines = cartLinesOf(s0);
+    const items = lines.map((l) => (l.listingId
+      ? { pid: l.pid, vi: 0, qty: l.qty, price: l.price, mrp: l.mrp, label: l.label, listingId: l.listingId, shopId: l.shopId, name: l.p.name, brand: l.p.brand, art: l.p.art }
+      : lineSnap(l.pid, l.vi, l.qty)));
+    const shopEtas = lines.filter((l) => l.listingId).map((l) => (s0.shops.find((x) => x.id === l.shopId) || {}).eta).filter(Boolean);
     const addr = s0.addresses.find((a) => a.id === s0.addressId) || s0.addresses[0];
     const id = 'QA' + String(Math.floor(20000 + Math.random() * 79999));
     act((s) => {
       const bill = billOf(items);
-      s.orders.unshift({ id, items, bill, address: addr, pay: s.pay, slot: s.slot, placedAt: Date.now(), eta: addr.eta, cancelled: false });
+      s.orders.unshift({ id, items, bill, address: addr, pay: s.pay, slot: s.slot, placedAt: Date.now(), eta: shopEtas.length ? Math.max(addr.eta, ...shopEtas) : addr.eta, cancelled: false });
+      items.filter((i) => i.listingId).forEach((i) => { const l = s.listings.find((x) => x.id === i.listingId); if (l) l.qty = Math.max(0, l.qty - i.qty); });
       if (s.pay === 'wallet') { s.wallet.balance -= bill.total; s.wallet.txns.unshift({ id: 't' + Date.now(), label: `Order #${id}`, amt: -bill.total, at: Date.now() }); }
       s.cart = {};
       s.slot = 'now';
