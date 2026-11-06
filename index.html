@@ -1559,6 +1559,12 @@ h1, h2, h3 { text-wrap: balance; }
   .wl-bg { clip-path: none; animation: none; }
 }
 
+/* Home: all products for the selected field */
+.field-list-h { display: flex; justify-content: space-between; align-items: baseline; margin: 6px 0 12px; }
+.field-list-h b { font-size: 15px; }
+.field-list-h small { color: var(--ink-3); font-size: 12.5px; }
+.field-grid-list { animation: tab-in .35s var(--ease); }
+.field-grid-list + .link { margin-top: 12px; }
 /* ---------- Mobile-only app ----------
    The app always uses its phone layout. On wider screens it sits centred in a phone-sized frame. */
 @media (min-width: 500px) {

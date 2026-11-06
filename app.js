@@ -475,7 +475,7 @@ function PaperPlane() {
   return html`<svg className="plane" viewBox="0 0 80 64" aria-hidden="true"><path d="M8 58c10-2 14-10 20-16" fill="none" stroke="#1E1530" stroke-width="1.6" stroke-dasharray="3 4" stroke-linecap="round"/><path d="M28 34 76 6 60 50 44 40z" fill="#fff" stroke="#1E1530" stroke-width="2" stroke-linejoin="round"/><path d="M44 40 76 6 36 38l4 12z" fill="#EEEAF4" stroke="#1E1530" stroke-width="2" stroke-linejoin="round"/></svg>`;
 }
 function Otp({ params }) {
-  const { S, nav, act, toast, setStackDirect, welcome } = useApp();
+  const { nav, act, toast, setStackDirect } = useApp();
   const [code, setCode] = useState('');
   const [kb, setKb] = useState(true);
   const [err, setErr] = useState('');
@@ -489,10 +489,8 @@ function Otp({ params }) {
     if (code.length < 6) { setErr('Enter all 6 digits.'); return; }
     if (code === '000000') { setErr("That code didn't match. Check the SMS or resend it."); return; }
     act((s) => { s.user.loggedIn = true; s.user.guest = false; s.user.phone = params.phone; });
-    if (params.mode === 'onboard') {
-      if (S.user.onboarded) { welcome(S.user.name && S.user.name !== 'there' ? `Welcome back, ${S.user.name}!` : 'Welcome back!'); nav.tab('home'); }
-      else nav.reset([['fields', { mode: 'onboard' }]]);
-    }
+    // After OTP everyone picks (or confirms) their fields; the picker then plays the welcome into Home
+    if (params.mode === 'onboard') nav.reset([['fields', { mode: 'onboard' }]]);
     else if (params.mode === 'checkout') setStackDirect((st) => [...st.slice(0, -2), mkRoute('checkout')]);
     else { nav.popN(2); toast('Logged in'); }
   };
@@ -523,14 +521,19 @@ function FieldsScreen({ params }) {
   const { S, act, nav, toast, welcome } = useApp();
   const onboard = params.mode === 'onboard';
   const [sel, setSel] = useState(S.user.fields);
-  const [name, setName] = useState(onboard ? '' : S.user.name || ''); // new users type their own name
+  // New users type their own name; returning users see the name they entered before
+  const [name, setName] = useState(S.user.name && S.user.name !== 'there' ? S.user.name : '');
   const toggle = (id) => setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const save = (fields) => {
     act((s) => {
       s.user.fields = fields;
       if (onboard) { s.user.onboarded = true; s.user.name = name.trim() || 'there'; }
     });
-    if (onboard) { welcome(name.trim() ? `Welcome, ${name.trim()}!` : 'Welcome to Quick Art!'); nav.tab('home'); }
+    if (onboard) {
+      const n = name.trim(), back = S.user.onboarded;
+      welcome(n ? `${back ? 'Welcome back' : 'Welcome'}, ${n}!` : back ? 'Welcome back!' : 'Welcome to Quick Art!');
+      nav.tab('home');
+    }
     else { nav.pop(); toast('Your fields are updated'); }
   };
   const picked = FIELDS.filter((f) => sel.includes(f.id));
@@ -561,26 +564,29 @@ function FieldsScreen({ params }) {
         ${picked.length > 0 && html`<span className="cta-stack" aria-hidden="true">${picked.slice(0, 3).map((f) => html`<span key=${f.id}><${Emo} k=${f.icon} /></span>`)}</span>`}
         ${onboard ? (sel.length ? 'Show my materials' : 'Pick at least one field') : 'Save'}
       </button>
-      ${onboard && html`<button className="btn text" onClick=${() => save([])}>Skip for now</button>`}
+      ${onboard && html`<button className="btn text" onClick=${() => save(S.user.onboarded ? S.user.fields : [])}>${S.user.onboarded ? 'Keep my fields' : 'Skip for now'}</button>`}
     </div>
   </div>`;
 }
 
 /* ---------- Home ---------- */
 function Home() {
-  const { S, nav, openSheet, addMany, jumpToReel } = useApp();
+  const { S, nav, openSheet, jumpToReel } = useApp();
   const addr = S.addresses.find((a) => a.id === S.addressId) || S.addresses[0];
   const fields = S.user.fields;
-  const [fi, setFi] = useState(0);
+  const [moreSugg, setMoreSugg] = useState(false);
   const [ph, setPh] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setPh((x) => (x + 1) % PLACEHOLDERS.length), 2600);
     return () => clearInterval(t);
   }, []);
-  const field = FIELDS.find((f) => f.id === fields[Math.min(fi, fields.length - 1)]);
-  const kit = field ? field.kit.map((id) => P[id]) : [];
-  const essentials = kit.filter((p) => dvOf(p).stock > 0).slice(0, 4);
-  const essTotal = essentials.reduce((a, p) => a + dvOf(p).price, 0);
+  // Suggestions from all the user's fields, taken in turn so each field shows up near the top
+  const suggested = useMemo(() => {
+    const kits = fields.map((id) => (FIELDS.find((f) => f.id === id) || { kit: [] }).kit);
+    const seen = new Set(), list = [];
+    for (let i = 0; i < Math.max(0, ...kits.map((k) => k.length)); i++) kits.forEach((k) => { const id = k[i]; if (id && P[id] && !seen.has(id)) { seen.add(id); list.push(P[id]); } });
+    return list;
+  }, [fields.join()]);
   const deals = useMemo(() => [...PRODUCTS].filter((p) => dvOf(p).stock > 0).sort((a, b) => pctOff(dvOf(b)) - pctOff(dvOf(a))).slice(0, 10), []);
   const buyAgain = [...new Set(S.orders.filter((o) => !o.cancelled).flatMap((o) => o.items.map((i) => i.pid)))].slice(0, 8).map((id) => P[id]);
   const recent = S.recent.filter((id) => P[id]).slice(0, 8).map((id) => P[id]);
@@ -616,17 +622,10 @@ function Home() {
       <div className="banner-art" aria-hidden="true"><${Art} art=${P.p1.art} /><${Art} art=${P.p13.art} /></div>
     </section>
 
-    ${field ? html`<section className="sec">
-      <${SecHead} title="Made for your field" sub="Picked for what you study and make" action="Edit" onAction=${() => nav.push('fields', { mode: 'edit' })} />
-      ${fields.length > 1 && html`<div className="chips scroll-x" role="tablist" aria-label="Your fields">
-        ${fields.map((id, i) => html`<button key=${id} role="tab" aria-selected=${i === fi} className=${'chip' + (i === fi ? ' on' : '')} onClick=${() => setFi(i)}>${fieldName(id)}</button>`)}
-      </div>`}
-      <div className="kit-card" style=${{ '--tile': field.bg }}>
-        <div className="kit-txt"><span className="kit-emoji" aria-hidden="true"><${Emo} k=${field.icon} /></span><div><b>${field.name} essentials</b><p>${essentials.map((p) => p.name.split(',')[0]).join(' · ')}</p></div></div>
-        <button className="btn primary sm" onClick=${() => addMany(essentials.map((p) => [p.id, p.dv, 1]), `Added ${essentials.length} essentials`)}>Add all ${essentials.length} · ${inr(essTotal)}</button>
-      </div>
-      <${Rail} items=${kit} />
-      <button className="link pad-x" onClick=${() => nav.push('plp', { field: field.id })}>See everything for ${field.name} ${I('right')}</button>
+    ${suggested.length ? html`<section className="sec">
+      <${SecHead} title="Suggested for you" sub=${'For ' + fields.map(fieldName).join(', ')} />
+      <div className="grid2 field-grid-list">${(moreSugg ? suggested : suggested.slice(0, 8)).map((p) => html`<${ProductCard} key=${p.id} p=${p} wide />`)}</div>
+      ${suggested.length > 8 && html`<button className="link pad-x" onClick=${() => setMoreSugg(!moreSugg)}>${moreSugg ? 'Show fewer' : `Show all ${suggested.length} suggestions`} ${I(moreSugg ? 'chevd' : 'right')}</button>`}
     </section>` : html`<section className="sec pad-x">
       <button className="nudge" onClick=${() => nav.push('fields', { mode: 'edit' })}>
         <${Emo} k="target" /><span><b>Tell us what you create</b><small>Get kits for fashion, architecture, fine arts and more.</small></span>${I('chev')}

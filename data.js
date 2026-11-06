@@ -247,14 +247,12 @@ const CATS = [
 ];
 
 const FIELDS = [
-  { id: 'graphic', name: 'Graphic Design', icon: 'pen', bg: '#EEEAF4', blurb: 'Markers, liners, lettering', kit: ['p13', 'p14', 'p19', 'p45', 'p47', 'p50', 'p15', 'p10'] },
   { id: 'fashion', name: 'Fashion Design', icon: 'dress', bg: '#EEEAF4', blurb: 'Croquis, fabric markers, measuring', kit: ['p22', 'p16', 'p33', 'p32', 'p34', 'p10', 'p9'] },
   { id: 'interior', name: 'Interior Design', icon: 'couch', bg: '#EEEAF4', blurb: 'Drafting, scale, model boards', kit: ['p30', 'p31', 'p23', 'p26', 'p27', 'p28', 'p14'] },
-  { id: 'product', name: 'Product Design', icon: 'puzzle', bg: '#EEEAF4', blurb: 'Ideation sketching, mock-ups', kit: ['p19', 'p13', 'p35', 'p20', 'p26', 'p27', 'p28', 'p32'] },
-  { id: 'arch', name: 'Architecture', icon: 'building', bg: '#EEEAF4', blurb: 'Technical pens, sheets, models', kit: ['p30', 'p31', 'p23', 'p41', 'p26', 'p27', 'p28', 'p38'] },
-  { id: 'fine', name: 'Fine Arts', icon: 'palette', bg: '#EEEAF4', blurb: 'Paints, brushes, canvas', kit: ['p1', 'p3', 'p6', 'p24', 'p43', 'p25', 'p5', 'p11', 'p21'] },
-  { id: 'illus', name: 'Illustration', icon: 'writing', bg: '#EEEAF4', blurb: 'Inking, watercolour, markers', kit: ['p15', 'p13', 'p8', 'p21', 'p3', 'p49', 'p10', 'p19'] },
-  { id: 'craft', name: 'Craft & DIY', icon: 'yarn', bg: '#EEEAF4', blurb: 'Glue, cutting, colours', kit: ['p29', 'p48', 'p42', 'p27', 'p16', 'p2', 'p26'] },
+  { id: 'painting', name: 'Painting', icon: 'brush', bg: '#EEEAF4', blurb: 'Acrylic, oil, watercolour', kit: ['p1', 'p2', 'p3', 'p24', 'p6', 'p7', 'p25', 'p44', 'p50'] },
+  { id: 'jewel', name: 'Jewellery Design', icon: 'gem', bg: '#EEEAF4', blurb: 'Rendering, fine lines, templates', kit: ['p15', 'p50', 'p9', 'p32', 'p31', 'p6', 'p19'] },
+  { id: 'fine', name: 'Fine Arts', icon: 'frame', bg: '#EEEAF4', blurb: 'Drawing, charcoal, pastels, canvas', kit: ['p9', 'p11', 'p43', 'p5', 'p24', 'p21', 'p3', 'p19'] },
+  { id: 'arch', name: 'Architecture Design', icon: 'building', bg: '#EEEAF4', blurb: 'Technical pens, sheets, models', kit: ['p30', 'p31', 'p23', 'p41', 'p26', 'p27', 'p28', 'p38'] },
 ];
 
 /* ---------- Catalogue ---------- */
@@ -411,21 +409,21 @@ function ratingBars(p) {
 
 /* ---------- Explore reels (simulated demo clips) ---------- */
 const REELS = [
-  { id: 'r1', scene: 'markers', title: 'Blending three alcohol markers without streaks', creator: 'inkbymeera', fields: ['illus', 'graphic', 'product'], tags: ['drawing'], products: ['p13', 'p22'], likes: 12400, bg: '#F4EFE6' },
-  { id: 'r2', scene: 'watercolor', title: 'Student vs artist grade: how the pigment blooms on 300 gsm', creator: 'wetonwet.studio', fields: ['fine', 'illus'], tags: ['painting'], products: ['p3', 'p21'], likes: 8930, bg: '#F7F6F2' },
-  { id: 'r3', scene: 'cut', title: 'One-pass foam board cuts for your model jury', creator: 'model.lab.ahd', fields: ['arch', 'interior', 'product'], tags: ['model'], products: ['p27', 'p28', 'p26'], likes: 5210, bg: '#2F7D59' },
-  { id: 'r4', scene: 'sticky', title: 'Affinity mapping kit for your next UX workshop', creator: 'ux.with.ananya', fields: ['graphic', 'product'], tags: ['studio'], products: ['p35', 'p17'], likes: 3880, bg: '#E9E4DA' },
-  { id: 'r5', scene: 'brush', title: 'Which round brush holds a point for acrylic detail?', creator: 'canvas.kabir', fields: ['fine', 'craft'], tags: ['painting'], products: ['p6', 'p1'], likes: 15100, bg: '#22303C' },
+  { id: 'r1', scene: 'markers', title: 'Blending three alcohol markers without streaks', creator: 'inkbymeera', fields: ['fashion', 'interior', 'jewel'], tags: ['drawing'], products: ['p13', 'p22'], likes: 12400, bg: '#F4EFE6' },
+  { id: 'r2', scene: 'watercolor', title: 'Student vs artist grade: how the pigment blooms on 300 gsm', creator: 'wetonwet.studio', fields: ['painting', 'fine'], tags: ['painting'], products: ['p3', 'p21'], likes: 8930, bg: '#F7F6F2' },
+  { id: 'r3', scene: 'cut', title: 'One-pass foam board cuts for your model jury', creator: 'model.lab.ahd', fields: ['arch', 'interior'], tags: ['model'], products: ['p27', 'p28', 'p26'], likes: 5210, bg: '#2F7D59' },
+  { id: 'r4', scene: 'sticky', title: 'Mood board and sticky-note kit for your next studio crit', creator: 'studio.with.ananya', fields: ['interior', 'arch'], tags: ['studio'], products: ['p35', 'p17'], likes: 3880, bg: '#E9E4DA' },
+  { id: 'r5', scene: 'brush', title: 'Which round brush holds a point for acrylic detail?', creator: 'canvas.kabir', fields: ['painting', 'fine'], tags: ['painting'], products: ['p6', 'p1'], likes: 15100, bg: '#22303C' },
   { id: 'r6', scene: 'fineliner', title: 'Line weights for elevations: 0.05 to 0.8 mm', creator: 'drafts.by.dev', fields: ['arch', 'interior'], tags: ['drawing'], products: ['p14', 'p30'], likes: 4420, bg: '#F3F5F7' },
   { id: 'r7', scene: 'tape', title: 'Measuring for your first croquis-to-pattern project', creator: 'studio.tanvi', fields: ['fashion'], tags: ['studio'], products: ['p33', 'p22', 'p32'], likes: 2760, bg: '#F6E3EC' },
-  { id: 'r8', scene: 'sketch', title: 'Hatching tones from 8B down to 2H', creator: 'sketch.daily', fields: ['fine', 'illus', 'arch'], tags: ['drawing'], products: ['p9', 'p19'], likes: 21800, bg: '#FBFAF6' },
-  { id: 'r9', scene: 'swatch', title: 'Swatching all 24 shades before you buy', creator: 'colourcheck', fields: ['fine', 'craft'], tags: ['painting'], products: ['p1', 'p2'], likes: 9640, bg: '#FFFFFF' },
-  { id: 'r10', scene: 'pour', title: 'Acrylic pour: cells in three colours on canvas', creator: 'pour.with.ira', fields: ['fine', 'craft'], tags: ['painting'], products: ['p2', 'p24', 'p25'], likes: 18300, bg: '#1E1530' },
-  { id: 'r11', scene: 'landscape', title: 'Sunset landscape in oils in 60 seconds', creator: 'oil.and.easel', fields: ['fine'], tags: ['painting'], products: ['p5', 'p24', 'p7'], likes: 26400, bg: '#F6E7D8' },
-  { id: 'r12', scene: 'knife', title: 'Palette knife texture with heavy acrylic', creator: 'texture.talks', fields: ['fine', 'craft'], tags: ['painting'], products: ['p25', 'p1', 'p24'], likes: 11200, bg: '#F4F1EA' },
-  { id: 'r13', scene: 'wheel', title: 'Mix a full colour wheel from five poster colours', creator: 'colourtheory.in', fields: ['graphic', 'fine', 'illus'], tags: ['painting'], products: ['p50', 'p6'], likes: 9870, bg: '#FBFAFC' },
-  { id: 'r14', scene: 'flowers', title: 'Gouache flowers for your sketchbook', creator: 'petals.and.paint', fields: ['illus', 'fine'], tags: ['painting'], products: ['p50', 'p44', 'p19'], likes: 14600, bg: '#EEF3F7' },
-  { id: 'r15', scene: 'wash', title: 'Wet-on-wet sky wash, no hard edges', creator: 'wetonwet.studio', fields: ['fine', 'illus'], tags: ['painting'], products: ['p3', 'p21', 'p8'], likes: 12900, bg: '#F7F6F2' },
+  { id: 'r8', scene: 'sketch', title: 'Hatching tones from 8B down to 2H', creator: 'sketch.daily', fields: ['fine', 'arch', 'jewel'], tags: ['drawing'], products: ['p9', 'p19'], likes: 21800, bg: '#FBFAF6' },
+  { id: 'r9', scene: 'swatch', title: 'Swatching all 24 shades before you buy', creator: 'colourcheck', fields: ['painting'], tags: ['painting'], products: ['p1', 'p2'], likes: 9640, bg: '#FFFFFF' },
+  { id: 'r10', scene: 'pour', title: 'Acrylic pour: cells in three colours on canvas', creator: 'pour.with.ira', fields: ['painting'], tags: ['painting'], products: ['p2', 'p24', 'p25'], likes: 18300, bg: '#1E1530' },
+  { id: 'r11', scene: 'landscape', title: 'Sunset landscape in oils in 60 seconds', creator: 'oil.and.easel', fields: ['painting', 'fine'], tags: ['painting'], products: ['p5', 'p24', 'p7'], likes: 26400, bg: '#F6E7D8' },
+  { id: 'r12', scene: 'knife', title: 'Palette knife texture with heavy acrylic', creator: 'texture.talks', fields: ['painting'], tags: ['painting'], products: ['p25', 'p1', 'p24'], likes: 11200, bg: '#F4F1EA' },
+  { id: 'r13', scene: 'wheel', title: 'Mix a full colour wheel from five poster colours', creator: 'colourtheory.in', fields: ['painting', 'fine', 'jewel'], tags: ['painting'], products: ['p50', 'p6'], likes: 9870, bg: '#FBFAFC' },
+  { id: 'r14', scene: 'flowers', title: 'Gouache flowers for your sketchbook', creator: 'petals.and.paint', fields: ['painting', 'jewel'], tags: ['painting'], products: ['p50', 'p44', 'p19'], likes: 14600, bg: '#EEF3F7' },
+  { id: 'r15', scene: 'wash', title: 'Wet-on-wet sky wash, no hard edges', creator: 'wetonwet.studio', fields: ['painting', 'fine'], tags: ['painting'], products: ['p3', 'p21', 'p8'], likes: 12900, bg: '#F7F6F2' },
 ];
 const R = Object.fromEntries(REELS.map((r) => [r.id, r]));
 
