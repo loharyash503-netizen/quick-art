@@ -116,8 +116,7 @@ function loadState() {
       if (s && s.v === 1) {
         const n = { ...freshState(), ...s };
         n.user = { ...n.user, fields: (n.user.fields || []).filter((id) => FIELDS.some((f) => f.id === id)) }; // drop retired fields
-        const bonus = (n.wallet.txns || []).find((t) => t.id === 't1' && t.label === 'Welcome bonus'); // the wallet no longer starts with free money
-        if (bonus) n.wallet = { balance: Math.max(0, n.wallet.balance - bonus.amt), txns: n.wallet.txns.filter((t) => t !== bonus) };
+        n.wallet = { balance: 0, txns: [] }; // the wallet starts empty every time the app opens; money added lasts for this visit only
         return n;
       }
     }
