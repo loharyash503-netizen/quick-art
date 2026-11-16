@@ -100,7 +100,7 @@ function freshState() {
     myReviews: {}, helpful: [],
     insta: { connected: false, handle: '' },
     shops: [], listings: [], requests: [], reservations: [], myShop: null,
-    wallet: { balance: 250, txns: [{ id: 't1', label: 'Welcome bonus', amt: 250, at: Date.now() - 2 * 864e5 }] },
+    wallet: { balance: 0, txns: [] }, // empty until the user adds money
     searches: ['acrylic paint', 'fineliner'],
     orders: [{ id: 'QA20417', items, bill: billOf(items), address: ADDRS[0], pay: 'upi', slot: 'now', placedAt: Date.now() - 3 * 864e5, eta: 14, cancelled: false, sample: true }],
     pay: 'upi', upi: 'yash@okaxis', slot: 'now',
@@ -116,6 +116,8 @@ function loadState() {
       if (s && s.v === 1) {
         const n = { ...freshState(), ...s };
         n.user = { ...n.user, fields: (n.user.fields || []).filter((id) => FIELDS.some((f) => f.id === id)) }; // drop retired fields
+        const bonus = (n.wallet.txns || []).find((t) => t.id === 't1' && t.label === 'Welcome bonus'); // the wallet no longer starts with free money
+        if (bonus) n.wallet = { balance: Math.max(0, n.wallet.balance - bonus.amt), txns: n.wallet.txns.filter((t) => t !== bonus) };
         return n;
       }
     }
@@ -2191,6 +2193,7 @@ function WalletSheet({ need, onClose }) {
     <div className="chips wrap">${[100, 200, 500, 1000].concat(need && ![100, 200, 500, 1000].includes(Math.ceil(need / 50) * 50) ? [Math.ceil(need / 50) * 50] : []).map((a) => html`<button key=${a} className=${'chip' + (amt === a ? ' on' : '')} aria-pressed=${amt === a} onClick=${() => setAmt(a)}>+ ${inr(a)}</button>`)}</div>
     <button className="btn primary" onClick=${add}>${I('pluscircle')} Add ${inr(amt)}</button>
     <h4 className="sheet-sub">Recent activity</h4>
+    ${S.wallet.txns.length === 0 && html`<p className="muted wallet-empty">No activity yet. Money you add shows up here.</p>`}
     <ul className="wallet-txns">${S.wallet.txns.slice(0, 6).map((t) => html`<li key=${t.id}><span className=${'wt-ic' + (t.amt < 0 ? ' out' : '')}>${I(t.amt < 0 ? 'bag' : 'pluscircle')}</span><span><b>${t.label}</b><small>${dayTime(t.at)}</small></span><b className=${t.amt < 0 ? 'neg' : 'pos'}>${t.amt < 0 ? '−' : '+'} ${inr(Math.abs(t.amt))}</b></li>`)}</ul>
     <p className="proto-note">Prototype: no real money is added or charged.</p>
   <//>`;
