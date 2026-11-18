@@ -531,14 +531,28 @@ const SCENES = {
 
 /* Instagram art reels (sample). A live version would read the user's saved and liked reels through
    Meta's Instagram API with their permission; here the feed is a fixed sample. */
+/* Sample reels shown after linking Instagram (simulated). kind: 'artist' = finished artwork to use as reference, 'tool' = an art tool or technique demo */
 const INSTA_REELS = [
-  { id: 'ig1', scene: 'wash', creator: 'aqua.journal', caption: 'Soft sky wash before the city sketch #watercolour #urbansketching', tags: ['Watercolour', 'Cold-press paper', 'Water brush'], products: ['p3', 'p21', 'p8'] },
-  { id: 'ig2', scene: 'markers', creator: 'render.daily', caption: 'Sneaker render with three greys and one pop colour #markerart #productdesign', tags: ['Alcohol markers', 'Marker paper', 'Fineliner'], products: ['p13', 'p22', 'p14'] },
-  { id: 'ig3', scene: 'pour', creator: 'pourpanda', caption: 'First acrylic pour, cells everywhere! #acrylicpour #fluidart', tags: ['Acrylic paint', 'Canvas', 'Palette'], products: ['p2', 'p24', 'p25'] },
-  { id: 'ig4', scene: 'sketch', creator: 'graphite.ghost', caption: 'Portrait study, 8B for the shadows #pencilsketch #portrait', tags: ['Graphite pencils', 'Sketchbook', 'Eraser'], products: ['p9', 'p38', 'p19', 'p39'] },
-  { id: 'ig5', scene: 'flowers', creator: 'bloom.and.brush', caption: 'Gouache florals for my journal #gouache #botanicalart', tags: ['Poster colours', 'Round brush', 'Sketchbook'], products: ['p50', 'p6', 'p46'] },
-  { id: 'ig6', scene: 'cut', creator: 'studio.models', caption: 'Pavilion model, cut in one evening #architecturemodel #foamboard', tags: ['Foam board', 'Cutter', 'Cutting mat'], products: ['p26', 'p27', 'p28'] },
+  { id: 'ig1', kind: 'artist', scene: 'wash', creator: 'aqua.journal', title: 'Soft sky wash', caption: 'Soft sky wash before the city sketch #watercolour #urbansketching', tags: ['Watercolour', 'Cold-press paper', 'Water brush'], products: ['p3', 'p21', 'p8'] },
+  { id: 'ig7', kind: 'artist', scene: 'landscape', creator: 'dusk.in.oils', title: 'Sunset over the hills', caption: 'Sunset over the hills, oils on a canvas board #oilpainting #landscape', tags: ['Oil colours', 'Canvas board', 'Flat brush'], products: ['p5', 'p24', 'p7'] },
+  { id: 'ig3', kind: 'artist', scene: 'pour', creator: 'pourpanda', title: 'Acrylic pour cells', caption: 'First acrylic pour, cells everywhere! #acrylicpour #fluidart', tags: ['Acrylic paint', 'Canvas', 'Palette'], products: ['p2', 'p24', 'p25'] },
+  { id: 'ig4', kind: 'artist', scene: 'sketch', creator: 'graphite.ghost', title: 'Portrait study', caption: 'Portrait study, 8B for the shadows #pencilsketch #portrait', tags: ['Graphite pencils', 'Sketchbook', 'Eraser'], products: ['p9', 'p38', 'p19', 'p39'] },
+  { id: 'ig5', kind: 'artist', scene: 'flowers', creator: 'bloom.and.brush', title: 'Gouache florals', caption: 'Gouache florals for my journal #gouache #botanicalart', tags: ['Poster colours', 'Round brush', 'Sketchbook'], products: ['p50', 'p6', 'p46'] },
+  { id: 'ig8', kind: 'artist', scene: 'knife', creator: 'texture.room', title: 'Palette knife texture', caption: 'Thick palette-knife texture with heavy acrylic #impasto #acrylicpainting', tags: ['Heavy acrylic', 'Palette knife', 'Canvas'], products: ['p25', 'p1', 'p24'] },
+  { id: 'ig2', kind: 'artist', scene: 'markers', creator: 'render.daily', title: 'Marker render', caption: 'Sneaker render with three greys and one pop colour #markerart #productdesign', tags: ['Alcohol markers', 'Marker paper', 'Fineliner'], products: ['p13', 'p22', 'p14'] },
+  { id: 'ig9', kind: 'tool', scene: 'swatch', creator: 'swatch.shelf', title: 'Swatching 24 colours', caption: 'Swatching a 24-colour acrylic set before I paint #swatch #artsupplies', tags: ['Acrylic set', 'Swatch card'], products: ['p1', 'p2'] },
+  { id: 'ig10', kind: 'tool', scene: 'brush', creator: 'brush.notes', title: 'Which brush holds a point?', caption: 'Testing three round brushes for fine acrylic detail #brushes #arttools', tags: ['Round brushes', 'Acrylic paint'], products: ['p6', 'p1'] },
+  { id: 'ig11', kind: 'tool', scene: 'fineliner', creator: 'pen.test.lab', title: 'Fineliner line test', caption: 'Line weights from 0.05 to 0.8 mm for elevations #fineliner #architecture', tags: ['Fineliners', 'Drafting'], products: ['p14', 'p30'] },
+  { id: 'ig12', kind: 'tool', scene: 'wheel', creator: 'colour.mixer', title: 'Colour wheel from 5 paints', caption: 'A full colour wheel mixed from five poster colours #colourtheory #gouache', tags: ['Poster colours', 'Round brush'], products: ['p50', 'p6'] },
+  { id: 'ig6', kind: 'tool', scene: 'cut', creator: 'studio.models', title: 'Clean foam board cuts', caption: 'Pavilion model, cut in one evening #architecturemodel #foamboard', tags: ['Foam board', 'Cutter', 'Cutting mat'], products: ['p26', 'p27', 'p28'] },
 ];
+const IGR = Object.fromEntries(INSTA_REELS.map((r) => [r.id, r]));
+/* The colours an artwork uses, read from its drawing: a reference palette */
+function paletteOf(scene) {
+  const hex = (SCENES[scene]().match(/#[0-9a-f]{6}/gi) || []).map((h) => h.toUpperCase());
+  const light = (h) => { const n = parseInt(h.slice(1), 16); return ((n >> 16) & 255) + ((n >> 8) & 255) + (n & 255) > 690; };
+  return [...new Set(hex.slice(1))].filter((h) => !light(h)).slice(0, 5);
+}
 /* Words in a caption or hashtag mapped to products, for "Paste a caption" */
 const MATERIAL_WORDS = [
   [['watercolour', 'watercolor', 'wash', 'wetonwet'], ['p3', 'p44', 'p21', 'p8']],

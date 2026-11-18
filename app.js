@@ -98,7 +98,7 @@ function freshState() {
     addresses: ADDRS, addressId: 'a1',
     cart: {}, saved: [], savedReels: [], liked: [], notify: [], recent: [],
     myReviews: {}, helpful: [],
-    insta: { connected: false, handle: '' },
+    insta: { connected: false, handle: '' }, igRefs: [],
     shops: [], listings: [], requests: [], reservations: [], myShop: null,
     wallet: { balance: 0, txns: [] }, // empty until the user adds money
     searches: ['acrylic paint', 'fineliner'],
@@ -1104,26 +1104,123 @@ function InstaConnectSheet({ onClose }) {
     </div>
   <//>`;
 }
-function InstaReelCard({ r }) {
-  const { addMany, jumpToReel } = useApp();
-  const items = r.products.map((id) => P[id]).filter((p) => dvOf(p).stock > 0);
-  const total = items.reduce((a, p) => a + dvOf(p).price, 0);
-  return html`<article className="ig-card">
-    <div className="ig-card-top">
-      <div className="ig-thumb" aria-hidden="true" dangerouslySetInnerHTML=${{ __html: sceneSvg(r.scene) }}></div>
-      <div className="ig-meta">
-        <b>@${r.creator}</b>
-        <p>${r.caption}</p>
-        <div className="ig-tags"><small>We spotted</small>${r.tags.map((t) => html`<span key=${t} className="ig-tag">${t}</span>`)}</div>
+const IG_KIND = { artist: 'Artist', tool: 'Art tool' };
+/* Saving a reel as a reference (shared by the player and the reference sheet) */
+function useIgRef(r) {
+  const { S, act, toast } = useApp();
+  const saved = (S.igRefs || []).includes(r.id);
+  const toggle = () => {
+    act((s) => { s.igRefs = saved ? s.igRefs.filter((x) => x !== r.id) : [r.id, ...(s.igRefs || [])]; });
+    toast(saved ? 'Removed from your references' : 'Saved to your references');
+  };
+  return [saved, toggle];
+}
+/* A reel tile in the grid: a short looping preview, like Instagram's reels grid */
+function IgTile({ r, onOpen }) {
+  return html`<button className="ig-tile" onClick=${onOpen} aria-label=${`Play reel by @${r.creator}: ${r.title}`}>
+    <span className="ig-tile-art" aria-hidden="true" dangerouslySetInnerHTML=${{ __html: sceneSvg(r.scene) }}></span>
+    <span className="ig-tile-shade" aria-hidden="true"></span>
+    <span className=${'ig-kind ' + r.kind}>${IG_KIND[r.kind]}</span>
+    <span className="ig-tile-play" aria-hidden="true">${I('play', { fill: true })}</span>
+    <span className="ig-tile-txt"><b>@${r.creator}</b><small>${r.title}</small><em>${I('bag')} ${r.products.length} materials</em></span>
+  </button>`;
+}
+/* Everything used in a reel, with one-tap add */
+function IgShopSheet({ r, onClose }) {
+  const { addMany } = useApp();
+  const items = r.products.map((id) => P[id]).filter(Boolean);
+  const inStock = items.filter((p) => dvOf(p).stock > 0);
+  const total = inStock.reduce((a, p) => a + dvOf(p).price, 0);
+  return html`<${Sheet} title="Materials in this reel" onClose=${onClose}>
+    <p className="ig-sheet-by">From <b>@${r.creator}</b> · ${r.title}</p>
+    <div className="ig-tags"><small>We spotted</small>${r.tags.map((t) => html`<span key=${t} className="ig-tag">${t}</span>`)}</div>
+    <ul className="ig-mats">${items.map((p) => html`<li key=${p.id}><${Art} art=${p.art} bg=${p.bg} /><span><small>${p.brand}</small><b>${p.name}</b><strong>${inr(dvOf(p).price)}</strong><span className="ig-mat-add"><${AddBtn} p=${p} vi=${p.dv} /></span></span></li>`)}</ul>
+    ${inStock.length > 1 && html`<button className="btn primary" onClick=${() => { addMany(inStock.map((p) => [p.id, p.dv, 1]), `Added ${inStock.length} items from this reel`); onClose(); }}>${I('cart')} Add all ${inStock.length} · ${inr(total)}</button>`}
+  <//>`;
+}
+/* The artwork as a reference: a still, its colours, and a save button */
+function IgRefSheet({ r, onClose }) {
+  const [saved, toggle] = useIgRef(r);
+  const pal = paletteOf(r.scene);
+  return html`<${Sheet} title="Reference" onClose=${onClose}>
+    <div className="ig-ref">
+      <div className="ig-ref-art" aria-hidden="true" dangerouslySetInnerHTML=${{ __html: sceneSvg(r.scene) }}></div>
+      <div className="ig-ref-txt">
+        <small>${IG_KIND[r.kind]}</small>
+        <b>${r.title}</b>
+        <span>by @${r.creator}</span>
+        ${pal.length > 1 && html`<div className="ig-pal"><small>Colours used</small><div>${pal.map((c) => html`<span key=${c} className="ig-sw" style=${{ background: c }} title=${c}></span>`)}</div></div>`}
       </div>
     </div>
-    <div className="rail ig-rail">${r.products.map((id) => html`<${MiniCard} key=${id} p=${P[id]} />`)}</div>
-    <button className="btn lav sm ig-add" onClick=${() => addMany(items.map((p) => [p.id, p.dv, 1]), `Added ${items.length} items for this look`)}>${I('cart')} Add all ${items.length} · ${inr(total)}</button>
-  </article>`;
+    <p className="ig-cap">${r.caption}</p>
+    <button className=${'btn ' + (saved ? 'ghost' : 'primary')} onClick=${toggle}>${I('bookmark', { fill: saved })} ${saved ? 'Saved to references' : 'Save as reference'}</button>
+    <p className="proto-note">Artwork belongs to @${r.creator}. Credit the artist if you share work based on it.</p>
+  <//>`;
+}
+/* One full-screen Instagram reel */
+function IgReel({ r, playing, onTap, onShop, onRef }) {
+  const { qty, addToCart } = useApp();
+  const [saved, toggle] = useIgRef(r);
+  const p = P[r.products[0]], inCart = qty(p.id, p.dv) > 0;
+  const pal = paletteOf(r.scene);
+  return html`<section className=${'reel ig-reel' + (playing ? '' : ' paused')} aria-label=${`Instagram reel by @${r.creator}: ${r.title}`}>
+    <div className="reel-stage" role="button" tabIndex="0" aria-label=${playing ? 'Pause reel' : 'Play reel'} onClick=${onTap} onKeyDown=${(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onTap())} dangerouslySetInnerHTML=${{ __html: sceneSvg(r.scene) }}></div>
+    <div className="reel-shade" aria-hidden="true"></div>
+    <div className="reel-progress" aria-hidden="true"><i></i></div>
+    <div className="reel-rail">
+      <button className="rail-btn" aria-label="View as reference" onClick=${onRef}>${I('imgplus')}<span>Reference</span></button>
+      <button className=${'rail-btn' + (saved ? ' on' : '')} aria-pressed=${saved} aria-label=${saved ? 'Remove from references' : 'Save as reference'} onClick=${toggle}>${I('bookmark', { fill: saved })}<span>${saved ? 'Saved' : 'Save'}</span></button>
+      <button className="rail-btn" aria-label="Shop materials" onClick=${onShop}>${I('bag')}<span>Shop</span></button>
+    </div>
+    <div className="reel-info">
+      <p className="reel-by"><b>@${r.creator}</b> <span className="reel-field">${IG_KIND[r.kind]}</span></p>
+      <p className="reel-cap">${r.caption}</p>
+      ${pal.length > 1 && html`<button className="ig-pal-row" onClick=${onRef} aria-label="See the colours used">${pal.map((c) => html`<span key=${c} style=${{ background: c }}></span>`)}<small>Colours used</small></button>`}
+      <div className="reel-prod">
+        <button className="reel-prod-hit" onClick=${onShop} aria-label=${`See all ${r.products.length} materials`}>
+          <${Art} art=${p.art} bg=${p.bg} />
+          <span className="reel-prod-txt"><b>${p.name}</b><small>${p.brand} · <strong>${inr(dvOf(p).price)}</strong>${r.products.length > 1 ? ` · +${r.products.length - 1} more` : ''}</small></span>
+        </button>
+        <button className=${'reel-add' + (inCart ? ' on' : '')} onClick=${() => (inCart ? onShop() : addToCart(p.id, p.dv))} aria-label=${inCart ? 'In cart. See all materials' : `Add ${p.name} to cart`}>${I(inCart ? 'check' : 'plus')} ${inCart ? 'In cart' : 'Add'}</button>
+      </div>
+    </div>
+  </section>`;
+}
+/* Full-screen player for linked Instagram reels; swipe up for the next one */
+function IgReelsScreen({ params }) {
+  const { nav } = useApp();
+  const ref = useRef();
+  const list = useMemo(() => (params.ids || INSTA_REELS.map((r) => r.id)).map((id) => IGR[id]).filter(Boolean), [params.ids]);
+  const [idx, setIdx] = useState(() => Math.max(0, list.findIndex((r) => r.id === params.rid)));
+  const [paused, setPaused] = useState(false);
+  const [sheet, setSheet] = useState(null);
+  useEffect(() => { if (ref.current) ref.current.scrollTop = idx * ref.current.clientHeight; }, []);
+  const onScroll = () => {
+    const el = ref.current, i = Math.round(el.scrollTop / el.clientHeight);
+    if (i !== idx) { setIdx(i); setPaused(false); }
+  };
+  return html`<div className="screen-col dark-screen">
+    <div className="explore stacked">
+      <div className="feed" ref=${ref} onScroll=${onScroll}>
+        ${list.map((r, i) => html`<${IgReel} key=${r.id} r=${r} playing=${i === idx && !paused && !sheet} onTap=${() => setPaused((x) => !x)} onShop=${() => setSheet({ type: 'shop', r })} onRef=${() => setSheet({ type: 'ref', r })} />`)}
+      </div>
+      <div className="explore-top"><div className="explore-title">
+        <button className="round-btn on-dark" aria-label="Back" onClick=${nav.pop}>${I('left')}</button>
+        <span className="ig-top-label">${I('reelcam')} Instagram · ${idx + 1} of ${list.length}</span>
+        <${CartBtn} dark />
+      </div></div>
+    </div>
+    ${sheet && sheet.type === 'shop' && html`<${IgShopSheet} r=${sheet.r} onClose=${() => setSheet(null)} />`}
+    ${sheet && sheet.type === 'ref' && html`<${IgRefSheet} r=${sheet.r} onClose=${() => setSheet(null)} />`}
+  </div>`;
 }
 function InstaScreen() {
-  const { S, act, toast } = useApp();
+  const { S, act, toast, nav } = useApp();
   const [linking, setLinking] = useState(false);
+  const [kind, setKind] = useState('all');
+  const shown = INSTA_REELS.filter((r) => kind === 'all' || r.kind === kind);
+  const refs = (S.igRefs || []).map((id) => IGR[id]).filter(Boolean);
+  const open = (r, ids) => nav.push('igreels', { rid: r.id, ids: ids.map((x) => x.id) });
   const [cap, setCap] = useState('');
   const [found, setFound] = useState(null);
   const ig = S.insta || {};
@@ -1137,11 +1234,19 @@ function InstaScreen() {
     <div className="stack-body pad-x ig-body">
       ${ig.connected ? html`<div className="ig-linked card">
           <span className="ig-glyph sm">${I('reelcam')}</span>
-          <div><b>@${ig.handle}</b><small>Linked · ${INSTA_REELS.length} art reels found</small></div>
+          <div><b>@${ig.handle}</b><small>Linked · ${INSTA_REELS.length} reels from artists and art tools</small></div>
           <button className="link" onClick=${() => { act((s) => { s.insta = { connected: false, handle: '' }; }); toast('Instagram unlinked'); }}>Unlink</button>
         </div>
-        <h2 className="h-s ig-h">From your saved and liked reels</h2>
-        <div className="ig-list">${INSTA_REELS.map((r) => html`<${InstaReelCard} key=${r.id} r=${r} />`)}</div>`
+        ${refs.length > 0 && html`<section className="ig-refs">
+          <h2 className="h-s ig-h">Your references <span className="count">${refs.length}</span></h2>
+          <div className="rail ig-ref-rail">${refs.map((r) => html`<button key=${r.id} className="ig-ref-chip" onClick=${() => open(r, refs)} aria-label=${`Open reference ${r.title} by @${r.creator}`}><span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: sceneSvg(r.scene) }}></span><small>@${r.creator}</small></button>`)}</div>
+        </section>`}
+        <div className="ig-head">
+          <h2 className="h-s ig-h">Reels from your Instagram</h2>
+          <p className="ig-sub">See the art, keep it as a reference, and buy the materials used.</p>
+        </div>
+        <div className="seg ig-seg" role="tablist" aria-label="Reel type">${[['all', 'All'], ['artist', 'Artists'], ['tool', 'Art tools']].map(([k, l]) => html`<button key=${k} role="tab" aria-selected=${kind === k} className=${kind === k ? 'on' : ''} onClick=${() => setKind(k)}>${l}</button>`)}</div>
+        <div className="ig-grid">${shown.map((r) => html`<${IgTile} key=${r.id} r=${r} onOpen=${() => open(r, shown)} />`)}</div>`
       : html`<div className="ig-hero">
           <span className="ig-glyph lg">${I('reelcam')}</span>
           <h2>Turn the art reels you love into a shopping list</h2>
@@ -2235,7 +2340,7 @@ const TABS = [
   { id: 'orders', label: 'Orders', icon: 'orders', C: Orders },
   { id: 'profile', label: 'Profile', icon: 'user', C: Profile },
 ];
-const SCREENS = { brands: BrandsScreen, brand: BrandDetail, citem: CatalogueItem, shop: ShopPortal, insta: InstaScreen, login: Login, otp: Otp, fields: FieldsScreen, search: Search, plp: PLP, pdp: PDP, cart: Cart, checkout: Checkout, paying: Paying, confirm: Confirm, order: OrderDetail, saved: Saved, addresses: Addresses, help: Help, pricing: Pricing, reels: ReelsScreen };
+const SCREENS = { brands: BrandsScreen, brand: BrandDetail, citem: CatalogueItem, shop: ShopPortal, insta: InstaScreen, igreels: IgReelsScreen, login: Login, otp: Otp, fields: FieldsScreen, search: Search, plp: PLP, pdp: PDP, cart: Cart, checkout: Checkout, paying: Paying, confirm: Confirm, order: OrderDetail, saved: Saved, addresses: Addresses, help: Help, pricing: Pricing, reels: ReelsScreen };
 let _rk = 0;
 function mkRoute(name, params) { return { name, params: params || {}, k: ++_rk }; }
 
@@ -2474,7 +2579,7 @@ function App() {
     toast, openSheet: setSheet, catSeg, welcome, jump, clearJump: () => setJump(null), jumpToReel, placeOrder, resetAll, setStackDirect: setStack,
   };
   const top = stack[stack.length - 1];
-  const darkTop = (!top && tab === 'explore') || (top && top.name === 'reels');
+  const darkTop = (!top && tab === 'explore') || (top && (top.name === 'reels' || top.name === 'igreels'));
   const lightAuth = top && ['login', 'otp'].includes(top.name);
   // The bottom navigation shows on every screen except sign-in and payment
   const noNav = top && (['login', 'otp', 'paying'].includes(top.name) || (top.name === 'fields' && top.params.mode === 'onboard'));
@@ -2490,7 +2595,7 @@ function App() {
         </div>`}
         ${stack.map((r, i) => {
           const C = SCREENS[r.name];
-          return html`<div key=${r.k} className=${'stack-screen route-' + r.name + (r.name === 'reels' ? ' dark-screen' : '')} aria-hidden=${i < stack.length - 1}><${C} params=${r.params} /></div>`;
+          return html`<div key=${r.k} className=${'stack-screen route-' + r.name + (r.name === 'reels' || r.name === 'igreels' ? ' dark-screen' : '')} aria-hidden=${i < stack.length - 1}><${C} params=${r.params} /></div>`;
         })}
         ${S.user.onboarded && html`<${BottomNav} hidden=${stack.length > 0 && !navOver && !wide} dark=${darkTop} />`}
         ${sheet && sheet.type === 'address' && html`<${AddressSheet} onClose=${() => setSheet(null)} />`}
