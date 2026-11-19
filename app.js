@@ -335,10 +335,29 @@ function QuickAdd({ p }) {
   const n = qty(p.id, p.dv);
   return html`<button className=${'quick-add' + (n ? ' on' : '')} aria-label=${n ? `${p.name}: ${n} in cart, add one more` : `Add ${p.name} to cart`} onClick=${() => addToCart(p.id, p.dv)}>${n ? html`<b>${n}</b>` : I('plus')}</button>`;
 }
+/* Like button: a heartbeat, a ring and a few sparks when liked; a quick shrink when unliked. Only plays on tap. */
 function HeartBtn({ pid, cls }) {
   const { S, toggleSaved } = useApp();
   const on = S.saved.includes(pid);
-  return html`<button className=${'heart ' + (cls || '') + (on ? ' on' : '')} aria-pressed=${on} aria-label=${on ? 'Remove from saved' : 'Save for later'} onClick=${() => toggleSaved(pid)}>${I('heart', { fill: on })}</button>`;
+  const icRef = useRef(null), burstRef = useRef(null);
+  const tap = () => {
+    const like = !on;
+    toggleSaved(pid);
+    if (like) { try { navigator.vibrate && navigator.vibrate(12); } catch (e) { /* no haptics */ } }
+    const ic = icRef.current, burst = burstRef.current;
+    if (!ic || !ic.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!like) { ic.animate([{ transform: 'scale(1)' }, { transform: 'scale(.72)' }, { transform: 'scale(1)' }], { duration: 260, easing: 'ease' }); return; }
+    ic.animate([{ transform: 'scale(1)' }, { transform: 'scale(.68)', offset: 0.22 }, { transform: 'scale(1.32)', offset: 0.55 }, { transform: 'scale(.94)', offset: 0.78 }, { transform: 'scale(1)' }], { duration: 550, easing: 'cubic-bezier(.3,1.5,.5,1)' });
+    burst.firstChild.animate([{ transform: 'scale(.5)', opacity: 0.9 }, { transform: 'scale(1.45)', opacity: 0 }], { duration: 500, easing: 'ease-out' });
+    [...burst.querySelectorAll('i')].forEach((el, i) => {
+      const a = i * 60 + 30;
+      el.animate([{ transform: `rotate(${a}deg) translateY(-8px) scale(1)`, opacity: 1 }, { transform: `rotate(${a}deg) translateY(-21px) scale(.3)`, opacity: 0 }], { duration: 550, delay: 80, easing: 'cubic-bezier(.2,.7,.3,1)' });
+    });
+  };
+  return html`<button className=${'heart ' + (cls || '') + (on ? ' on' : '')} aria-pressed=${on} aria-label=${on ? 'Remove from saved' : 'Save for later'} onClick=${tap}>
+    <span ref=${icRef} className="heart-ic">${I('heart', { fill: on })}</span>
+    <span ref=${burstRef} className="heart-burst" aria-hidden="true"><b></b><i></i><i></i><i></i><i></i><i></i><i></i></span>
+  </button>`;
 }
 function ProductCard({ p, wide }) {
   const { viewProduct } = useApp();

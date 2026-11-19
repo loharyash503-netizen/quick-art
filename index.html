@@ -785,8 +785,19 @@ h1, h2, h3 { text-wrap: balance; }
 @keyframes bump-sm { 30% { transform: scale(1.04); } 60% { transform: scale(.99); } }
 .fly { position: absolute; left: 0; top: 0; z-index: 85; width: 48px; height: 48px; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 8px 18px rgba(0,0,0,.25); pointer-events: none; }
 .fly img, .fly svg { display: block; width: 100%; height: 100%; object-fit: cover; }
-.heart.on .ic, .rail-btn.on .ic { animation: heartpop .38s cubic-bezier(.3,1.6,.5,1); }
+.rail-btn.on .ic { animation: heartpop .38s cubic-bezier(.3,1.6,.5,1); }
 @keyframes heartpop { from { transform: scale(.5); } }
+/* Like micro-interaction (HeartBtn): heartbeat + ring + sparks on like, quick shrink on unlike */
+.heart { transition: background-color .25s ease, color .2s ease, box-shadow .25s ease; }
+.heart.on { background: #FCEAF3; }
+.heart.static.on { background: #FCEAF3; }
+.heart-ic { display: grid; place-items: center; }
+/* Ring and sparks sit hidden; HeartBtn plays them with element.animate() on like */
+.heart-burst { position: absolute; inset: 0; pointer-events: none; }
+.heart-burst b { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--pink); opacity: 0; }
+.heart-burst i { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: var(--pink); opacity: 0; }
+.heart-burst i:nth-child(3n) { background: #E8B84A; }
+.heart-burst i:nth-child(3n+1) { background: var(--teal); }
 .tick { display: inline-block; animation: tick .22s ease; }
 @keyframes tick { from { transform: translateY(-45%); opacity: 0; } }
 .toast { animation: toast-in .28s cubic-bezier(.2,.9,.3,1.2); }
