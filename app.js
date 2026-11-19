@@ -2144,8 +2144,8 @@ function OrderDetail({ params }) {
 }
 
 /* ---------- Profile and settings ---------- */
-function Row({ icon, label, value, onClick }) {
-  return html`<button className="row" onClick=${onClick}><span className="row-ic">${I(icon)}</span><span className="row-label">${label}</span>${value != null && html`<span className="row-val">${value}</span>`}${I('chev')}</button>`;
+function Row({ icon, label, value, onClick, tint }) {
+  return html`<button className="row" onClick=${onClick}><span className="row-ic" style=${tint ? { background: tint[0], color: tint[1] } : null}>${I(icon)}</span><span className="row-label">${label}</span>${value != null && html`<span className="row-val">${value}</span>`}${I('chev')}</button>`;
 }
 const fmtPhone = (ph) => '+91 ' + ph.replace(/^(\d{5})/, '$1 ');
 function EditProfileSheet({ onClose }) {
@@ -2187,54 +2187,98 @@ function EditProfileSheet({ onClose }) {
     </form>
   <//>`;
 }
+const NOTIF_OPTS = [['orders', 'Order updates', 'Packed, out for delivery, delivered'], ['offers', 'Offers and price drops', 'On items you saved'], ['reels', 'New videos for your field', 'At most one a day']];
+/* Row icon tints, so each setting is easy to find at a glance */
+const TINT = {
+  teal: ['#E3EEF5', '#2F5F7D'], plum: ['#F1E7F6', '#5B2A78'], sun: ['#FFF3DA', '#8A5E07'],
+  mint: ['#E3F4EA', '#1B7045'], rose: ['#FCE8F2', '#9C356F'], slate: ['#ECEEF2', '#4A5260'],
+};
 function Profile() {
-  const { S, act, nav, toast, resetAll } = useApp();
-  const [paySheet, setPaySheet] = useState(false);
+  const { S, act, nav, toast, resetAll, openSheet } = useApp();
+  const [sheet, setSheet] = useState(null); // 'pay' | 'notif' | 'proto'
   const [editing, setEditing] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const u = S.user;
-  return html`<div className="scroll has-nav">
-    <header className="lav-head profile-head">
-      <${Avatar} size=${56} />
-      <div className="topbar-t"><h1>${u.name && u.name !== 'there' ? u.name : 'Guest'}</h1><p>${u.loggedIn ? fmtPhone(u.phone) : 'Not logged in'}</p>${u.email && html`<p>${u.email}</p>`}</div>
-      <button className="pill-outline edit-profile" onClick=${() => setEditing(true)}>${I('edit')} Edit</button>
+  const named = u.name && u.name !== 'there';
+  const notifOn = NOTIF_OPTS.filter(([k]) => S.notif[k]).length;
+  const ig = S.insta && S.insta.connected;
+  const tiles = [
+    { k: 'videos', icon: html`<${Emo} k="clapper" />`, label: 'Saved videos', sub: S.savedReels.length ? `${S.savedReels.length} saved` : 'None yet', cls: 'lav', go: () => nav.push('saved', { tab: 'videos' }) },
+    { k: 'insta', icon: html`<span className="ig-glyph pf-ig">${I('reelcam')}</span>`, label: 'Instagram', sub: ig ? '@' + S.insta.handle : 'Link your reels', cls: 'rose', go: () => nav.push('insta') },
+    { k: 'brands', icon: html`<${Emo} k="palette" />`, label: 'All brands', sub: `${BRANDS_CAT.length} brands`, cls: 'teal', go: () => nav.push('brands') },
+    { k: 'shop', icon: html`<${Emo} k="building" />`, label: 'Sell on Quick Art', sub: S.myShop ? 'Your shop' : 'For shop owners', cls: 'sun', go: () => nav.push('shop') },
+  ];
+  return html`<div className="scroll has-nav profile">
+    <header className="pf-hero">
+      <div className="pf-top">
+        <span className="pf-avatar"><${Avatar} size=${62} /></span>
+        <div className="pf-who">
+          <h1>${named ? u.name : 'Hello, guest'}</h1>
+          <p>${u.loggedIn ? fmtPhone(u.phone) : 'Not logged in'}</p>
+          ${u.email && html`<p>${u.email}</p>`}
+        </div>
+        <button className="pf-edit" onClick=${() => setEditing(true)} aria-label="Edit profile">${I('edit')}</button>
+      </div>
+      ${!u.loggedIn && html`<button className="pf-login" onClick=${() => nav.push('login', { mode: 'profile' })}><${Emo} k="key" /><span><b>Log in with your phone</b><small>Check out faster and track orders</small></span>${I('chev')}</button>`}
     </header>
+    <div className="pf-stats pad-x">
+      <button onClick=${() => nav.tab('orders')}><b>${S.orders.length}</b><small>Orders</small></button>
+      <button onClick=${() => nav.push('saved', { tab: 'items' })}><b>${S.saved.length}</b><small>Saved</small></button>
+      <button onClick=${() => openSheet({ type: 'wallet' })}><b>${inr(S.wallet.balance)}</b><small>Wallet</small></button>
+    </div>
     ${editing && html`<${EditProfileSheet} onClose=${() => setEditing(false)} />`}
-    ${!u.loggedIn && html`<div className="pad-m"><button className="nudge" onClick=${() => nav.push('login', { mode: 'profile' })}><${Emo} k="key" /><span><b>Log in with your phone</b><small>Check out faster and track your orders.</small></span>${I('chev')}</button></div>`}
-    <section className="sec pad-x">
-      <div className="idle-head"><h2 className="h-s">Your fields</h2><button className="link" onClick=${() => nav.push('fields', { mode: 'edit' })}>Edit</button></div>
-      <div className="chips wrap">${u.fields.length ? u.fields.map((id) => html`<span key=${id} className="chip on static">${fieldName(id)}</span>`) : html`<span className="muted">None picked yet. Add one to get material kits for your discipline.</span>`}</div>
+
+    <section className="pf-sec pad-x">
+      <div className="pf-sec-h"><h2>Your fields</h2><button className="link" onClick=${() => nav.push('fields', { mode: 'edit' })}>${u.fields.length ? 'Edit' : 'Choose'}</button></div>
+      ${u.fields.length ? html`<div className="pf-fields">${u.fields.map((id) => { const f = FIELDS.find((x) => x.id === id); return f && html`<span key=${id} className="pf-field"><${Emo} k=${f.icon} />${f.name}</span>`; })}</div>`
+        : html`<p className="pf-empty">Pick your field to get material kits made for it.</p>`}
     </section>
-    <section className="list-sec pad-x">
-      <${Row} icon="heart" label="Saved items" value=${S.saved.length} onClick=${() => nav.push('saved', { tab: 'items' })} />
-      <${Row} icon="bookmark" label="Saved videos" value=${S.savedReels.length} onClick=${() => nav.push('saved', { tab: 'videos' })} />
-      <${Row} icon="tag" label="All brands" value=${BRANDS_CAT.length} onClick=${() => nav.push('brands')} />
-      <${Row} icon="store" label="Sell on Quick Art" value=${S.myShop ? 'Your shop' : 'For shop owners'} onClick=${() => nav.push('shop')} />
-      <${Row} icon="reelcam" label="Instagram" value=${S.insta && S.insta.connected ? '@' + S.insta.handle : 'Not linked'} onClick=${() => nav.push('insta')} />
-      <${Row} icon="orders" label="Order history" value=${S.orders.length} onClick=${() => nav.tab('orders')} />
-      <${Row} icon="pin" label="Saved addresses" value=${S.addresses.length} onClick=${() => nav.push('addresses')} />
-      <${Row} icon="card" label="Payment preference" value=${PAYS[S.pay].label} onClick=${() => setPaySheet(true)} />
+
+    <section className="pf-sec pad-x">
+      <div className="pf-tiles">${tiles.map((t) => html`<button key=${t.k} className=${'pf-tile ' + t.cls} onClick=${t.go}><span className="pf-tile-ic">${t.icon}</span><b>${t.label}</b><small>${t.sub}</small></button>`)}</div>
     </section>
-    <section className="list-sec pad-x"><h2 className="h-s">Notifications</h2>
-      ${[['orders', 'Order updates', 'Packed, out for delivery, delivered'], ['offers', 'Offers and price drops', 'On items you saved'], ['reels', 'New videos for your field', 'At most one a day']].map(([k, l, d]) => html`<label key=${k} className="switch-row"><span><b>${l}</b><small>${d}</small></span><input type="checkbox" role="switch" checked=${S.notif[k]} onChange=${(e) => act((s) => { s.notif[k] = e.target.checked; })} /></label>`)}
+
+    <section className="pf-sec pad-x">
+      <h2 className="pf-label">Account</h2>
+      <div className="pf-card">
+        <${Row} icon="pin" tint=${TINT.teal} label="Saved addresses" value=${S.addresses.length} onClick=${() => nav.push('addresses')} />
+        <${Row} icon="card" tint=${TINT.plum} label="Payment preference" value=${PAYS[S.pay].label} onClick=${() => setSheet('pay')} />
+        <${Row} icon="bell" tint=${TINT.sun} label="Notifications" value=${notifOn ? `${notifOn} on` : 'Off'} onClick=${() => setSheet('notif')} />
+      </div>
     </section>
-    <section className="list-sec pad-x">
-      <${Row} icon="help" label="Help and support" onClick=${() => nav.push('help')} />
-      <${Row} icon="receipt" label="How our pricing works" onClick=${() => nav.push('pricing')} />
+
+    <section className="pf-sec pad-x">
+      <h2 className="pf-label">Help</h2>
+      <div className="pf-card">
+        <${Row} icon="help" tint=${TINT.mint} label="Help and support" onClick=${() => nav.push('help')} />
+        <${Row} icon="receipt" tint=${TINT.rose} label="How our pricing works" onClick=${() => nav.push('pricing')} />
+        <${Row} icon="sliders" tint=${TINT.slate} label="Prototype settings" onClick=${() => setSheet('proto')} />
+      </div>
     </section>
-    <section className="list-sec pad-x proto"><h2 className="h-s">Prototype controls</h2>
-      <label className="switch-row"><span><b>Fail the next online payment</b><small>Shows the payment error screen once</small></span><input type="checkbox" role="switch" checked=${S.failNext} onChange=${(e) => act((s) => { s.failNext = e.target.checked; })} /></label>
-      <button className="row" onClick=${() => setConfirm('reset')}><span className="row-ic">${I('refresh')}</span><span className="row-label">Reset prototype data</span>${I('chev')}</button>
-    </section>
-    ${u.loggedIn && html`<div className="pad-m"><button className="btn ghost" onClick=${() => setConfirm('logout')}>${I('logout')} Log out</button></div>`}
-    ${confirm && html`<div className="pad-m"><div className="confirm" role="alertdialog" aria-label="Confirm">
-      <p>${confirm === 'reset' ? 'Reset cart, orders, saved items and onboarding to the starting sample data?' : 'Log out of quickart on this device?'}</p>
+
+    ${u.loggedIn && html`<div className="pad-x pf-out"><button className="btn text danger-text" onClick=${() => setConfirm('logout')}>${I('logout')} Log out</button></div>`}
+    ${confirm === 'logout' && html`<div className="pad-m"><div className="confirm" role="alertdialog" aria-label="Confirm log out">
+      <p>Log out of Quick Art on this device?</p>
       <div className="row-gap"><button className="btn ghost sm" onClick=${() => setConfirm(null)}>Cancel</button>
-        <button className="btn danger sm" onClick=${() => { setConfirm(null); if (confirm === 'reset') resetAll(); else { act((s) => { s.user.loggedIn = false; s.user.phone = ''; }); toast('Logged out'); } }}>${confirm === 'reset' ? 'Reset' : 'Log out'}</button></div>
+        <button className="btn danger sm" onClick=${() => { setConfirm(null); act((s) => { s.user.loggedIn = false; s.user.phone = ''; }); toast('Logged out'); }}>Log out</button></div>
     </div></div>`}
-    <p className="proto-note pad-x">quickart prototype · sample catalogue, prices, stock and delivery times</p>
-    ${paySheet && html`<${Sheet} title="Payment preference" onClose=${() => setPaySheet(false)}>
-      <div className="radio-list">${Object.entries(PAYS).map(([k, x]) => html`<label key=${k} className=${'radio-card' + (S.pay === k ? ' on' : '')}><input type="radio" name="paypref" checked=${S.pay === k} onChange=${() => { act((s) => { s.pay = k; }); setPaySheet(false); toast(`${x.label} will be selected at checkout`); }} /><span className="rc-ic">${I(x.icon)}</span><span className="rc-txt"><b>${x.label}</b></span></label>`)}</div>
+    <p className="proto-note pad-x">Quick Art prototype · sample catalogue, prices, stock and delivery times</p>
+
+    ${sheet === 'pay' && html`<${Sheet} title="Payment preference" onClose=${() => setSheet(null)}>
+      <div className="radio-list">${Object.entries(PAYS).map(([k, x]) => html`<label key=${k} className=${'radio-card' + (S.pay === k ? ' on' : '')}><input type="radio" name="paypref" checked=${S.pay === k} onChange=${() => { act((s) => { s.pay = k; }); setSheet(null); toast(`${x.label} will be selected at checkout`); }} /><span className="rc-ic">${I(x.icon)}</span><span className="rc-txt"><b>${x.label}</b></span></label>`)}</div>
+    <//>`}
+    ${sheet === 'notif' && html`<${Sheet} title="Notifications" onClose=${() => setSheet(null)}>
+      <div className="pf-switches">${NOTIF_OPTS.map(([k, l, d]) => html`<label key=${k} className="switch-row"><span><b>${l}</b><small>${d}</small></span><input type="checkbox" role="switch" checked=${S.notif[k]} onChange=${(e) => act((s) => { s.notif[k] = e.target.checked; })} /></label>`)}</div>
+    <//>`}
+    ${sheet === 'proto' && html`<${Sheet} title="Prototype settings" onClose=${() => { setSheet(null); setConfirm(null); }}>
+      <div className="pf-switches">
+        <label className="switch-row"><span><b>Fail the next online payment</b><small>Shows the payment error screen once</small></span><input type="checkbox" role="switch" checked=${S.failNext} onChange=${(e) => act((s) => { s.failNext = e.target.checked; })} /></label>
+      </div>
+      ${confirm === 'reset' ? html`<div className="confirm" role="alertdialog" aria-label="Confirm reset">
+          <p>Reset cart, orders, saved items and onboarding to the starting sample data?</p>
+          <div className="row-gap"><button className="btn ghost sm" onClick=${() => setConfirm(null)}>Cancel</button><button className="btn danger sm" onClick=${() => { setConfirm(null); setSheet(null); resetAll(); }}>Reset</button></div>
+        </div>`
+        : html`<button className="btn ghost" onClick=${() => setConfirm('reset')}>${I('refresh')} Reset prototype data</button>`}
     <//>`}
   </div>`;
 }

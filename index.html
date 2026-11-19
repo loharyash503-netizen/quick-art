@@ -1765,6 +1765,70 @@ h1, h2, h3 { text-wrap: balance; }
 .check-row input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--purple); flex: none; }
 .lst-form .btn { margin-top: 10px; }
 
+/* ---------- Profile (redesign): gradient hero, stats, field chips, tiles, grouped lists ---------- */
+.profile { background: var(--bg); }
+.pf-hero { position: relative; overflow: hidden; color: #fff; background: var(--grad); border-radius: 0 0 30px 30px; padding: calc(var(--sb) + 14px) 18px 58px; }
+.pf-hero::before, .pf-hero::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; }
+.pf-hero::before { width: 220px; height: 220px; right: -70px; top: -90px; background: radial-gradient(circle, rgba(255,255,255,.18), rgba(255,255,255,0) 70%); }
+.pf-hero::after { width: 160px; height: 160px; left: -60px; bottom: -80px; background: radial-gradient(circle, rgba(176,64,127,.45), rgba(176,64,127,0) 70%); }
+.pf-top { position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; }
+.pf-avatar { flex: none; padding: 3px; border-radius: 50%; background: linear-gradient(135deg, rgba(255,255,255,.9), rgba(255,255,255,.35)); }
+.pf-avatar .avatar { border: 0; background: linear-gradient(135deg, #7FA6BF, #B0407F); box-shadow: inset 0 0 0 2px rgba(255,255,255,.25); }
+.pf-who { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.pf-who h1 { font-size: 22px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-who p { font-size: 13px; opacity: .82; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-edit { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: rgba(255,255,255,.16); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
+.pf-edit .ic { width: 17px; height: 17px; }
+.pf-login { position: relative; z-index: 1; width: 100%; display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 10px 12px; border-radius: 16px; color: #fff; text-align: left; background: rgba(255,255,255,.14); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+.pf-login .emo { width: 34px; height: 34px; flex: none; }
+.pf-login > span { flex: 1; display: grid; }
+.pf-login b { font-size: 14px; }
+.pf-login small { font-size: 12px; opacity: .8; }
+.pf-login > .ic { width: 18px; height: 18px; flex: none; opacity: .9; }
+.pf-hero:has(.pf-login) { padding-bottom: 64px; }
+.pf-stats button:first-child { border-radius: 20px 0 0 20px; }
+
+/* Stats card floats over the hero's edge */
+.pf-stats { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(3, 1fr); margin: -40px 16px 0; padding: 0; background: var(--card); border-radius: 20px; box-shadow: 0 10px 28px rgba(30,21,48,.12); }
+.pf-stats button { display: grid; justify-items: center; gap: 2px; padding: 14px 4px; border-radius: 20px; }
+.pf-stats button + button { box-shadow: -1px 0 0 var(--line); border-radius: 0; }
+.pf-stats button:last-child { border-radius: 0 20px 20px 0; }
+.pf-stats b { font-size: 19px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
+.pf-stats small { font-size: 12px; color: var(--ink-3); font-weight: 600; }
+
+.pf-sec { margin-top: 22px; }
+.pf-sec-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.pf-sec-h h2, .pf-label { font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
+.pf-label { margin-bottom: 10px; }
+.pf-fields { display: flex; flex-wrap: wrap; gap: 8px; }
+.pf-field { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border-radius: var(--r-pill); background: var(--card); font-size: 13.5px; font-weight: 700; color: var(--purple-ink); box-shadow: 0 2px 10px rgba(30,21,48,.06), inset 0 0 0 1px var(--line); }
+.pf-field .emo { width: 28px; height: 28px; padding: 3px; border-radius: 50%; background: var(--lav-100); }
+.pf-empty { font-size: 13.5px; color: var(--ink-3); }
+
+/* Shortcut tiles */
+.pf-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pf-tile { position: relative; overflow: hidden; display: grid; gap: 2px; justify-items: start; text-align: left; padding: 14px; min-height: 112px; align-content: end; border-radius: 20px; }
+.pf-tile b { font-size: 14.5px; color: var(--ink); }
+.pf-tile small { font-size: 12px; color: var(--ink-2); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-tile-ic { position: absolute; top: 12px; left: 12px; width: 42px; height: 42px; display: grid; place-items: center; }
+.pf-tile-ic .emo { width: 40px; height: 40px; filter: drop-shadow(0 4px 6px rgba(30,21,48,.15)); }
+.pf-tile::after { content: ''; position: absolute; right: -26px; top: -26px; width: 86px; height: 86px; border-radius: 50%; background: rgba(255,255,255,.55); }
+.pf-tile.lav { background: linear-gradient(150deg, #F1ECF8, #E4DCF0); }
+.pf-tile.rose { background: linear-gradient(150deg, #FDF0F6, #F7DCEA); }
+.pf-tile.teal { background: linear-gradient(150deg, #EAF3F8, #D6E7F0); }
+.pf-tile.sun { background: linear-gradient(150deg, #FFF7E6, #FBE9C2); }
+.ig-glyph.pf-ig { width: 38px; height: 38px; border-radius: 12px; box-shadow: 0 4px 10px rgba(225,48,108,.3); }
+
+/* Grouped settings */
+.pf-card { background: var(--card); border-radius: 20px; padding: 2px 14px; box-shadow: 0 2px 12px rgba(30,21,48,.05), inset 0 0 0 1px var(--line); }
+.pf-card .row { min-height: 58px; }
+.pf-card .row:last-child { border-bottom: 0; }
+.pf-card .row-ic { border-radius: 12px; }
+.pf-switches .switch-row:last-child { border-bottom: 0; }
+.pf-out { margin-top: 14px; display: flex; justify-content: center; }
+.pf-out .btn { gap: 8px; }
+.profile .proto-note { margin-top: 6px; }
+
 /* ---------- Mobile-only app ----------
    The app always uses its phone layout. On wider screens it sits centred in a phone-sized frame. */
 @media (min-width: 500px) {
