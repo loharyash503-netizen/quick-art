@@ -2206,7 +2206,6 @@ function Profile() {
     { k: 'videos', icon: html`<${Emo} k="clapper" />`, label: 'Saved videos', sub: S.savedReels.length ? `${S.savedReels.length} saved` : 'None yet', cls: 'lav', go: () => nav.push('saved', { tab: 'videos' }) },
     { k: 'insta', icon: html`<span className="ig-glyph pf-ig">${I('reelcam')}</span>`, label: 'Instagram', sub: ig ? '@' + S.insta.handle : 'Link your reels', cls: 'rose', go: () => nav.push('insta') },
     { k: 'brands', icon: html`<${Emo} k="palette" />`, label: 'All brands', sub: `${BRANDS_CAT.length} brands`, cls: 'teal', go: () => nav.push('brands') },
-    { k: 'shop', icon: html`<${Emo} k="building" />`, label: 'Sell on Quick Art', sub: S.myShop ? 'Your shop' : 'For shop owners', cls: 'sun', go: () => nav.push('shop') },
   ];
   return html`<div className="scroll has-nav profile">
     <header className="pf-hero">
@@ -2403,7 +2402,7 @@ const TABS = [
   { id: 'orders', label: 'Orders', icon: 'orders', C: Orders },
   { id: 'profile', label: 'Profile', icon: 'user', C: Profile },
 ];
-const SCREENS = { brands: BrandsScreen, brand: BrandDetail, citem: CatalogueItem, shop: ShopPortal, insta: InstaScreen, igreels: IgReelsScreen, login: Login, otp: Otp, fields: FieldsScreen, search: Search, plp: PLP, pdp: PDP, cart: Cart, checkout: Checkout, paying: Paying, confirm: Confirm, order: OrderDetail, saved: Saved, addresses: Addresses, help: Help, pricing: Pricing, reels: ReelsScreen };
+const SCREENS = { brands: BrandsScreen, brand: BrandDetail, citem: CatalogueItem, insta: InstaScreen, igreels: IgReelsScreen, login: Login, otp: Otp, fields: FieldsScreen, search: Search, plp: PLP, pdp: PDP, cart: Cart, checkout: Checkout, paying: Paying, confirm: Confirm, order: OrderDetail, saved: Saved, addresses: Addresses, help: Help, pricing: Pricing, reels: ReelsScreen };
 let _rk = 0;
 function mkRoute(name, params) { return { name, params: params || {}, k: ++_rk }; }
 

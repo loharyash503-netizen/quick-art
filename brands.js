@@ -98,7 +98,6 @@ function BrandsBrowser({ embedded }) {
       <h2 className="h-s">${filtering ? `${list.length} brand${list.length === 1 ? '' : 's'}` : `All brands A–Z (${list.length})`}</h2>
       ${list.length ? html`<div className="brand-list">${list.map((b) => html`<${BrandRow} key=${b.id} b=${b} />`)}</div>`
         : html`<${Empty} icon="search" title="No brands match" text="Try another name or clear the filters." />`}
-      <button className="nudge shop-cta" onClick=${() => nav.push('shop')}>${I('store')}<span><b>Own a stationery or art shop?</b><small>List your stock so nearby artists can order or reserve it.</small></span>${I('chev')}</button>
     </section>
     <div className="spacer"></div>
   </div>`;
@@ -245,7 +244,7 @@ function BrandDetail({ params }) {
       <section className="sec pad-x">
         <h2 className="h-s">Nearby shops with ${b.name}</h2>
         ${shops.length ? html`<div className="shop-list">${shops.map(({ s, n }) => html`<div key=${s.id} className="shop-row card">${I('store')}<div><b>${s.name}</b><small>${s.area}</small><small>${n} ${b.name} product${n === 1 ? '' : 's'} in stock${s.delivery ? ` · delivery about ${s.eta} min` : ''}${s.pickup ? ' · pickup' : ''}</small></div></div>`)}</div>`
-          : html`<div className="offers-empty"><p>${I('info')} No local shop has listed ${b.name} stock yet.</p><button className="link" onClick=${() => nav.push('shop')}>Own a shop? List your ${b.name} stock ${I('right')}</button></div>`}
+          : html`<div className="offers-empty"><p>${I('info')} No local shop has listed ${b.name} stock yet.</p></div>`}
       </section>
       <div className="spacer"></div>
     </div>
@@ -282,129 +281,4 @@ function Reservations() {
       <button className="btn text danger-text sm" onClick=${() => cancel(r)}>Cancel reservation</button>
     </article>`)}
   </section>`;
-}
-
-/* ---------- Shop owner portal ---------- */
-function ShopForm({ shop, onSave, onCancel }) {
-  const [d, setD] = useState(shop || { name: '', area: '', delivery: true, eta: '', pickup: true });
-  const [err, setErr] = useState({});
-  const save = (e) => {
-    e.preventDefault();
-    const er = {};
-    if (d.name.trim().length < 2) er.name = 'Enter your shop name.';
-    if (d.area.trim().length < 3) er.area = 'Enter the area or landmark customers know.';
-    if (d.delivery && !(+d.eta >= 5 && +d.eta <= 240)) er.eta = 'Enter your usual delivery time in minutes (5 to 240).';
-    if (!d.delivery && !d.pickup) er.mode = 'Offer home delivery, pickup, or both.';
-    setErr(er);
-    if (!Object.keys(er).length) onSave({ ...d, name: d.name.trim(), area: d.area.trim(), eta: d.delivery ? +d.eta : null });
-  };
-  return html`<form className="shop-form card" onSubmit=${save} noValidate>
-    <label className="text-field"><span>Shop name</span><input id="shop-name" value=${d.name} onChange=${(e) => setD({ ...d, name: e.target.value })} aria-invalid=${!!err.name} />${err.name && html`<em className="field-err">${err.name}</em>`}</label>
-    <label className="text-field"><span>Area and landmark</span><input id="shop-area" value=${d.area} onChange=${(e) => setD({ ...d, area: e.target.value })} aria-invalid=${!!err.area} />${err.area && html`<em className="field-err">${err.area}</em>`}</label>
-    <label className="switch-row"><span><b>Home delivery</b><small>You deliver orders to customers</small></span><input type="checkbox" role="switch" checked=${d.delivery} onChange=${(e) => setD({ ...d, delivery: e.target.checked })} /></label>
-    ${d.delivery && html`<label className="text-field"><span>Usual delivery time (minutes)</span><input id="shop-eta" type="number" inputMode="numeric" min="5" max="240" value=${d.eta} onChange=${(e) => setD({ ...d, eta: e.target.value })} aria-invalid=${!!err.eta} />${err.eta && html`<em className="field-err">${err.eta}</em>`}</label>`}
-    <label className="switch-row"><span><b>Reserve & pickup</b><small>Customers reserve and collect at your counter</small></span><input type="checkbox" role="switch" checked=${d.pickup} onChange=${(e) => setD({ ...d, pickup: e.target.checked })} /></label>
-    ${err.mode && html`<em className="field-err">${err.mode}</em>`}
-    <div className="row-gap end">${onCancel && html`<button type="button" className="btn ghost sm" onClick=${onCancel}>Cancel</button>`}<button type="submit" className="btn primary sm">${shop ? 'Save details' : 'Create shop'}</button></div>
-  </form>`;
-}
-function ListingSheet({ shop, edit, presetRef, onClose }) {
-  const { act, toast } = useApp();
-  const [ref, setRef] = useState(edit ? edit.ref : presetRef || null);
-  const [q, setQ] = useState('');
-  const prod = refProduct(ref);
-  const base = edit || { size: prod ? (ref.type === 'cat' ? prod.size : (prod.variants[prod.dv] || {}).label || '') : '', price: '', mrp: '', qty: '', delivery: shop.delivery, pickup: shop.pickup, checked: false };
-  const [d, setD] = useState({ ...base, checked: false });
-  const [err, setErr] = useState({});
-  useEffect(() => { if (!edit && prod) setD((x) => ({ ...x, size: ref.type === 'cat' ? prod.size : (prod.variants[prod.dv] || {}).label || '' })); }, [ref && ref.id]);
-  const results = q.trim().length > 1
-    ? [...searchCatalogue(q).slice(0, 8).map((c) => ({ ref: { type: 'cat', id: c.id }, name: c.name, brand: BRAND_CAT[c.brand].name })),
-       ...searchProducts(q).list.slice(0, 4).map((p) => ({ ref: { type: 'prod', id: p.id }, name: p.name, brand: p.brand }))]
-    : [];
-  const save = (e) => {
-    e.preventDefault();
-    const er = {};
-    if (!d.size || !String(d.size).trim()) er.size = 'Enter the pack size or quantity you sell.';
-    if (!(+d.price > 0)) er.price = 'Enter your selling price.';
-    if (d.mrp !== '' && d.mrp != null && +d.mrp < +d.price) er.mrp = 'MRP cannot be lower than your price.';
-    if (!(Number.isInteger(+d.qty) && +d.qty >= 0)) er.qty = 'Enter how many you have, as a whole number.';
-    if (!d.checked) er.checked = 'Confirm you have checked this stock before it is shown to customers.';
-    if (!d.delivery && !d.pickup) er.mode = 'Choose delivery, pickup or both.';
-    setErr(er);
-    if (Object.keys(er).length) return;
-    act((s) => {
-      const rec = { size: String(d.size).trim(), price: +d.price, mrp: d.mrp === '' || d.mrp == null ? +d.price : +d.mrp, qty: +d.qty, delivery: !!d.delivery && shop.delivery, pickup: !!d.pickup && shop.pickup, verifiedAt: Date.now() };
-      if (edit) Object.assign(s.listings.find((l) => l.id === edit.id), rec);
-      else s.listings.unshift({ id: 'ls' + Date.now(), shopId: shop.id, ref, ...rec });
-    });
-    toast(edit ? 'Listing updated' : 'Listed. Customers nearby can now see it.');
-    onClose();
-  };
-  return html`<${Sheet} title=${edit ? 'Edit listing' : 'List a product'} onClose=${onClose} tall>
-    ${!ref ? html`<div className="lst-pick">
-        <label className="brand-search">${I('search')}<input id="lst-q" type="search" value=${q} onChange=${(e) => setQ(e.target.value)} placeholder="Search products or brands" autoComplete="off" /></label>
-        ${results.length ? html`<ul className="sugg">${results.map((r) => html`<li key=${r.ref.type + r.ref.id}><button onClick=${() => setRef(r.ref)}><span className="sugg-ic img"><${Art} art=${(refProduct(r.ref) || {}).art} bg="#EEEAF4" /></span><span><b>${r.name}</b><small>${r.brand}${r.ref.type === 'prod' ? ' · Quick Art store item' : ''}</small></span>${I('chev')}</button></li>`)}</ul>`
-          : html`<p className="muted">Type at least two letters, for example “Copic” or “watercolour paper”.</p>`}
-      </div>`
-    : html`<form className="lst-form" onSubmit=${save} noValidate>
-        <div className="rv-prod"><${Art} art=${prod.art} bg=${prod.bg} /><div><small>${prod.brand}</small><b>${prod.name}</b></div>${!edit && !presetRef && html`<button type="button" className="link" onClick=${() => setRef(null)}>Change</button>`}</div>
-        <label className="text-field"><span>Pack size or quantity you sell</span><input id="lst-size" value=${d.size} onChange=${(e) => setD({ ...d, size: e.target.value })} aria-invalid=${!!err.size} />${err.size && html`<em className="field-err">${err.size}</em>`}</label>
-        <div className="two-col">
-          <label className="text-field"><span>Your price (₹)</span><input id="lst-price" type="number" inputMode="decimal" min="1" value=${d.price} onChange=${(e) => setD({ ...d, price: e.target.value })} aria-invalid=${!!err.price} />${err.price && html`<em className="field-err">${err.price}</em>`}</label>
-          <label className="text-field"><span>MRP (₹) <small>(optional)</small></span><input id="lst-mrp" type="number" inputMode="decimal" min="1" value=${d.mrp} onChange=${(e) => setD({ ...d, mrp: e.target.value })} aria-invalid=${!!err.mrp} />${err.mrp && html`<em className="field-err">${err.mrp}</em>`}</label>
-        </div>
-        <label className="text-field"><span>Quantity in stock</span><input id="lst-qty" type="number" inputMode="numeric" min="0" value=${d.qty} onChange=${(e) => setD({ ...d, qty: e.target.value })} aria-invalid=${!!err.qty} />${err.qty && html`<em className="field-err">${err.qty}</em>`}</label>
-        ${shop.delivery && html`<label className="switch-row"><span><b>Available for delivery</b></span><input type="checkbox" role="switch" checked=${d.delivery} onChange=${(e) => setD({ ...d, delivery: e.target.checked })} /></label>`}
-        ${shop.pickup && html`<label className="switch-row"><span><b>Available to reserve & pick up</b></span><input type="checkbox" role="switch" checked=${d.pickup} onChange=${(e) => setD({ ...d, pickup: e.target.checked })} /></label>`}
-        ${err.mode && html`<em className="field-err">${err.mode}</em>`}
-        <label className="check-row"><input type="checkbox" checked=${d.checked} onChange=${(e) => { setD({ ...d, checked: e.target.checked }); if (e.target.checked) setErr({ ...err, checked: undefined }); }} /><span>I have checked this stock is on my shelf right now</span></label>
-        ${err.checked && html`<em className="field-err">${err.checked}</em>`}
-        <button type="submit" className="btn primary">${edit ? 'Save listing' : 'List product'}</button>
-      </form>`}
-  <//>`;
-}
-function ShopPortal() {
-  const { S, act, toast } = useApp();
-  const shop = S.shops.find((s) => s.id === S.myShop);
-  const [editing, setEditing] = useState(false);
-  const [sheet, setSheet] = useState(null);
-  const [confirmDel, setConfirmDel] = useState(null);
-  const mine = shop ? S.listings.filter((l) => l.shopId === shop.id) : [];
-  const listedRefs = new Set(mine.map((l) => l.ref.type + ':' + l.ref.id));
-  const reqs = Object.entries(S.requests.reduce((a, r) => ((a[r.ref] = (a[r.ref] || 0) + 1), a), {}))
-    .filter(([k]) => !listedRefs.has(k))
-    .map(([k, n]) => { const [type, id] = k.split(':'); return { ref: { type, id }, n, p: refProduct({ type, id }) }; })
-    .filter((x) => x.p);
-  const setQtyOf = (l, q) => act((s) => { const x = s.listings.find((y) => y.id === l.id); x.qty = Math.max(0, q); x.verifiedAt = Date.now(); });
-  if (!shop) {
-    return html`<div className="screen-col"><${TopBar} title="Sell on Quick Art" sub="For stationery and art shops" />
-      <div className="stack-body pad-x portal">
-        <div className="portal-intro card">${I('store')}<div><b>Reach artists and students near your shop</b><small>Add your shop, list the products you actually have, and customers can order for delivery or reserve to pick up.</small></div></div>
-        <${ShopForm} onSave=${(d) => { const id = 'sh' + Date.now(); act((s) => { s.shops.push({ id, ...d, at: Date.now() }); s.myShop = id; }); toast('Shop created. Now list your stock.'); }} />
-        <p className="proto-note">Prototype: shops and listings are saved on this device only. A live version needs shop accounts and a server so customers everywhere see them.</p>
-      </div></div>`;
-  }
-  return html`<div className="screen-col"><${TopBar} title=${shop.name} sub="Your shop on Quick Art" />
-    <div className="stack-body pad-x portal">
-      ${editing ? html`<${ShopForm} shop=${{ ...shop, eta: shop.eta || '' }} onCancel=${() => setEditing(false)} onSave=${(d) => { act((s) => { Object.assign(s.shops.find((x) => x.id === shop.id), d); }); setEditing(false); toast('Shop details saved'); }} />`
-        : html`<div className="card shop-card">
-          <div className="shop-row">${I('store')}<div><b>${shop.name}</b><small>${shop.area}</small><small>${[shop.delivery && `Delivery about ${shop.eta} min`, shop.pickup && 'Reserve & pickup'].filter(Boolean).join(' · ')}</small></div><button className="link" onClick=${() => setEditing(true)}>Edit</button></div>
-          <div className="shop-stats"><span><b>${mine.length}</b><small>listings</small></span><span><b>${mine.filter(listingAvailable).length}</b><small>in stock</small></span><span><b>${S.reservations.filter((r) => r.shopId === shop.id && r.status === 'reserved').length}</b><small>reservations</small></span></div>
-        </div>`}
-      <button className="btn primary" onClick=${() => setSheet({})}>${I('plus')} List a product</button>
-      ${reqs.length > 0 && html`<section className="sec"><h2 className="h-s">Customers are asking for</h2>
-        ${reqs.map((r) => html`<div key=${r.ref.type + r.ref.id} className="req-row card"><div><b>${r.p.name}</b><small>${r.p.brand} · ${r.n} request${r.n === 1 ? '' : 's'}</small></div><button className="btn lav sm" onClick=${() => setSheet({ presetRef: r.ref })}>List it</button></div>`)}
-      </section>`}
-      <section className="sec"><h2 className="h-s">Your listings</h2>
-        ${mine.length ? mine.map((l) => { const p = refProduct(l.ref) || { name: 'Unknown product', brand: '', art: { ph: 'paints' } }; return html`<article key=${l.id} className="card lst-row">
-          <div className="lst-top"><${Art} art=${p.art} bg="#EEEAF4" cls="lst-img" /><div><b>${p.name}</b><small>${p.brand} · ${l.size} · ${inr(l.price)}</small><small className=${listingAvailable(l) ? 'good' : 'bad'}>${l.qty > 0 ? `${l.qty} in stock` : 'Out of stock'} · checked ${ago(l.verifiedAt)}</small></div></div>
-          <div className="lst-actions"><${Stepper} q=${l.qty} soft label=${p.name} onChange=${(n) => setQtyOf(l, n)} /><button className="btn ghost sm" onClick=${() => setSheet({ edit: l })}>Edit</button>
-            ${confirmDel === l.id ? html`<button className="btn danger sm" onClick=${() => { act((s) => { s.listings = s.listings.filter((y) => y.id !== l.id); }); setConfirmDel(null); toast('Listing removed'); }}>Confirm remove</button>` : html`<button className="btn text danger-text sm" onClick=${() => setConfirmDel(l.id)}>Remove</button>`}</div>
-        </article>`; }) : html`<p className="muted">No listings yet. Tap “List a product” and enter stock you have on your shelf.</p>`}
-      </section>
-      <p className="proto-note">Prototype: shops and listings are saved on this device only. A live version needs shop accounts and a server so customers everywhere see them.</p>
-      <div className="spacer"></div>
-    </div>
-    ${sheet && html`<${ListingSheet} shop=${shop} edit=${sheet.edit} presetRef=${sheet.presetRef} onClose=${() => setSheet(null)} />`}
-  </div>`;
 }
