@@ -359,6 +359,15 @@ const RAW = [
     'Bright, break-resistant colour pencils with a triangular grip that is easy on small hands and long sessions.', { Shape: 'Triangular, dotted grip', Lead: 'Break resistant' }],
   ['p50', 'Poster Colours, 10 Shades', 'Kokuyo Camlin', 'paints', 'Poster colours', { kind: 'watercolor' }, [['10 x 15 ml', 140, 160, 34]], 4.5, 5180,
     'Smooth, opaque poster colours that dry to an even matte finish. Ideal for charts, posters and flat colour work.', { Finish: 'Matte, opaque', Pack: '10 jars x 15 ml' }],
+  /* Copic (Japan). Prices are the Indian MRP listed by Indian art retailers (Nov 2026); no ratings until real reviews come in. Photos: copic.jp */
+  ['p51', 'Copic Sketch Marker', 'Copic', 'markers', 'Alcohol markers', { kind: 'markers' }, [['Single marker', 425, 425, 20], ['Set of 6', 2550, 2550, 6], ['Set of 12, Basic', 5100, 5100, 4]], 0, 0,
+    "Copic's best-selling alcohol marker for design, illustration and fine art. A flexible Super Brush nib and a Medium Broad nib, refillable, with an oval barrel and colour-coded caps.", { Nibs: 'Super Brush + Medium Broad', Ink: 'Alcohol-based, refillable', Colours: '358 shades', Made: 'Japan' }],
+  ['p52', 'Copic Ciao Marker', 'Copic', 'markers', 'Alcohol markers', { kind: 'markers' }, [['Single marker', 299, 299, 24], ['Set of 6', 1680, 1680, 8], ['Set of 12, Basic', 3360, 3360, 5]], 0, 0,
+    "Copic's starter marker for students and beginners. The same Super Brush and Medium Broad nibs as Sketch in a simpler body with less ink, so it costs less. Refillable.", { Nibs: 'Super Brush + Medium Broad', Ink: 'Alcohol-based, refillable', Made: 'Japan' }],
+  ['p53', 'Copic Multiliner, 0.5 mm Black', 'Copic', 'markers', 'Fineliners', { kind: 'fineliners' }, [['0.5 mm, black', 175, 175, 30]], 0, 0,
+    'Pigment drawing pen with waterproof, alcohol-resistant ink, so lines stay sharp when you colour over them with Copic markers.', { Width: '0.5 mm', Ink: 'Pigment, water and alcohol resistant', Made: 'Japan' }],
+  ['p54', 'Copic Ink Refill, 12 ml', 'Copic', 'markers', 'Marker refills', { kind: 'markers' }, [['12 ml bottle', 399, 399, 15]], 0, 0,
+    'Refill ink for Copic markers. Quick, mess-free refilling makes each marker last much longer; also used for alcohol-ink art.', { Volume: '12 ml', Fits: 'Copic Sketch, Ciao, Classic, Wide', Made: 'Japan' }],
 ];
 
 const PRODUCTS = RAW.map(([id, name, brand, cat, sub, art, v, rating, reviews, desc, specs, dv]) => ({
@@ -371,7 +380,9 @@ PRODUCTS.forEach((p) => {
   p.bg = (CATS.find((c) => c.id === p.cat) || {}).bg || '#F4F2F7';
 });
 // Studio product photos (AI-generated, unbranded) for all 50 products. A product without a photo falls back to its drawn illustration.
-const PHOTOS = new Set(Array.from({ length: 50 }, (_, i) => 'p' + (i + 1)));
+const PHOTOS = new Set(Array.from({ length: 54 }, (_, i) => 'p' + (i + 1)));
+/* Products priced at the real Indian MRP (the rest use sample prices) */
+const INDIA_MRP = new Set(['p51', 'p52', 'p53', 'p54']);
 PRODUCTS.forEach((p) => { if (PHOTOS.has(p.id)) p.art = { ...p.art, photo: 'img/' + p.id + '.jpg' }; });
 const BRANDS = [...new Set(PRODUCTS.map((p) => p.brand))].sort();
 /* Brand directory, catalogue and shop listings live in catalogue.js */
@@ -384,6 +395,7 @@ const REVIEW_TEXT = {
   3: [['Okay for practice', 'Fine for rough work and practice sheets. For final pieces I would pick a higher grade.']],
 };
 function reviewsFor(p) {
+  if (!p.reviews) return [];
   let h = 0;
   for (const ch of p.id) h = (h * 31 + ch.charCodeAt(0)) % 9973;
   const rs = p.rating >= 4.6 ? [5, 5, 4, 5] : p.rating >= 4.3 ? [5, 4, 4, 3] : [4, 3, 5, 4];

@@ -66,20 +66,15 @@ function BrandRow({ b }) {
 function BrandsBrowser({ embedded }) {
   const { nav } = useApp();
   const [q, setQ] = useState('');
-  const [origin, setOrigin] = useState('all');
   const [cat, setCat] = useState(null);
-  const filtering = q.trim() || origin !== 'all' || cat;
+  const filtering = q.trim() || cat;
   const list = BRANDS_CAT
     .filter((b) => !q.trim() || b.name.toLowerCase().includes(q.trim().toLowerCase()))
-    .filter((b) => origin === 'all' || b.origin === origin)
     .filter((b) => !cat || brandCats(b.id).includes(cat))
     .sort((a, b) => a.name.localeCompare(b.name));
   return html`<div className=${'brands-browser' + (embedded ? ' embedded' : '')}>
     <div className="pad-x">
-      <label className="brand-search">${I('search')}<input id="brand-q" type="search" value=${q} onChange=${(e) => setQ(e.target.value)} placeholder="Search 67 brands" aria-label="Search brands" autoComplete="off" />${q && html`<button className="clear-x" aria-label="Clear" onClick=${() => setQ('')}>${I('x')}</button>`}</label>
-      <div className="seg origin-seg" role="tablist" aria-label="Brand origin">
-        ${[['all', 'All brands'], ['india', 'Indian'], ['intl', 'International']].map(([k, l]) => html`<button key=${k} role="tab" aria-selected=${origin === k} className=${origin === k ? 'on' : ''} onClick=${() => setOrigin(k)}>${l}</button>`)}
-      </div>
+      <label className="brand-search">${I('search')}<input id="brand-q" type="search" value=${q} onChange=${(e) => setQ(e.target.value)} placeholder=${`Search ${BRANDS_CAT.length} brands`} aria-label="Search brands" autoComplete="off" />${q && html`<button className="clear-x" aria-label="Clear" onClick=${() => setQ('')}>${I('x')}</button>`}</label>
     </div>
     <div className="chips scroll-x cat-filter" role="group" aria-label="Filter by category">
       <button className=${'chip' + (!cat ? ' on' : '')} aria-pressed=${!cat} onClick=${() => setCat(null)}>All categories</button>
@@ -233,14 +228,14 @@ function BrandDetail({ params }) {
         ${cats.map((c) => html`<button key=${c} className=${'chip' + (cat === c ? ' on' : '')} aria-pressed=${cat === c} onClick=${() => setCat(cat === c ? null : c)}>${CCAT[c].short}</button>`)}
       </div>
       ${storeShown.length > 0 && html`<section className="sec">
-        <${SecHead} title="Available now" sub="Sample Quick Art store products, ready to order" />
+        <${SecHead} title="Available now" sub=${storeShown.every((p) => INDIA_MRP.has(p.id)) ? 'Priced at Indian MRP, ready to order' : 'Sample Quick Art store products, ready to order'} />
         <div className="grid2">${storeShown.map((p) => html`<${ProductCard} key=${p.id} p=${p} wide />`)}</div>
       </section>`}
-      <section className="sec pad-x">
+      ${(items.length > 0 || store.length === 0) && html`<section className="sec pad-x">
         <h2 className="h-s">${b.name} catalogue <small className="count">${items.length}</small></h2>
         ${items.length ? html`<div className="cat-list">${items.map((c) => html`<${CatalogueCard} key=${c.id} c=${c} />`)}</div>`
           : html`<p className="muted">No catalogue entries in this category yet.</p>`}
-      </section>
+      </section>`}
       <section className="sec pad-x">
         <h2 className="h-s">Nearby shops with ${b.name}</h2>
         ${shops.length ? html`<div className="shop-list">${shops.map(({ s, n }) => html`<div key=${s.id} className="shop-row card">${I('store')}<div><b>${s.name}</b><small>${s.area}</small><small>${n} ${b.name} product${n === 1 ? '' : 's'} in stock${s.delivery ? ` · delivery about ${s.eta} min` : ''}${s.pickup ? ' · pickup' : ''}</small></div></div>`)}</div>`

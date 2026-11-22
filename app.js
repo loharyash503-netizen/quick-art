@@ -969,7 +969,7 @@ function PDP({ params }) {
         <h1 className="pdp-title">${p.name}</h1>
         <div className="pdp-price"><${Price} v=${v} big />${pct >= 5 && html`<span className="save">Save ${inr(v.mrp - v.price)}</span>`}</div>
         <p className="tax">Inclusive of all taxes</p>
-        <button className="rating rating-link" onClick=${() => { const el = document.getElementById('reviews-' + p.id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>${I('star', { fill: true, cls: 'star' })} <b>${p.rating}</b> <span>(${p.reviews.toLocaleString('en-IN')} reviews)</span> ${I('chevd')}</button>
+        ${p.reviews ? html`<button className="rating rating-link" onClick=${() => { const el = document.getElementById('reviews-' + p.id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>${I('star', { fill: true, cls: 'star' })} <b>${p.rating}</b> <span>(${p.reviews.toLocaleString('en-IN')} reviews)</span> ${I('chevd')}</button>` : html`<span className="rating rating-none">${I('star')} No ratings yet</span>`}
 
         ${p.variants.length > 1 && html`<div className="variants">
           <h3 className="mini-h">Choose an option</h3>
@@ -1334,10 +1334,10 @@ function Reviews({ p }) {
   const helpful = (id) => act((s) => { s.helpful = s.helpful.includes(id) ? s.helpful.filter((x) => x !== id) : [...s.helpful, id]; });
   return html`<section className="sec reviews pad-x" id=${'reviews-' + p.id}>
     <div className="rv-top"><div><h2>Ratings & reviews</h2><p>From verified buyers</p></div></div>
-    <div className="rv-summary card">
+    ${!p.reviews ? html`<div className="rv-summary card rv-none"><p>${I('star')} No ratings yet. Bought it? Be the first to review it.</p></div>` : html`<div className="rv-summary card">
       <div className="rv-score"><b>${p.rating.toFixed(1)}</b><${Stars} n=${p.rating} /><small>${p.reviews.toLocaleString('en-IN')} ratings</small></div>
       <div className="rv-bars">${bars.map((pc, i) => html`<div key=${i} className="rv-bar"><span>${5 - i}${I('star', { fill: true })}</span><i><em style=${{ width: pc + '%', '--d': i * 0.08 + 's' }}></em></i><small>${pc}%</small></div>`)}</div>
-    </div>
+    </div>`}
     ${photos.length > 0 && html`<div className="rv-photos-h"><h3 className="mini-h">Customer photos</h3><small>${photos.length}</small></div>
       <div className="rv-photos">${photos.map((x, i) => html`<button key=${i} className="rv-photo" onClick=${() => setView(x)} aria-label=${'Photo by ' + x.r.name}><img src=${x.src} alt="" className=${x.flip ? 'flip' : ''} /></button>`)}</div>`}
     <button className="btn ghost rv-write" onClick=${() => setWrite(true)}>${I('edit')} Write a review</button>
@@ -1509,7 +1509,7 @@ function ReelShopSheet({ rid, pid, onClose }) {
     </div>`}
     <div className="shop-main">
       <${Art} art=${p.art} bg=${p.bg} cls="shop-art" />
-      <div className="shop-txt"><small>${p.brand}</small><b>${p.name}</b><${Price} v=${v} /><span className="rating sm">${I('star', { fill: true, cls: 'star' })} ${p.rating}</span></div>
+      <div className="shop-txt"><small>${p.brand}</small><b>${p.name}</b><${Price} v=${v} />${p.reviews > 0 && html`<span className="rating sm">${I('star', { fill: true, cls: 'star' })} ${p.rating}</span>`}</div>
     </div>
     ${p.variants.length > 1 && html`<div className="var-list compact" role="radiogroup" aria-label="Options">${p.variants.map((x, i) => html`<button key=${i} role="radio" aria-checked=${vi === i} className=${'var' + (vi === i ? ' on' : '') + (x.stock === 0 ? ' oos' : '')} onClick=${() => setVi(i)}><span>${x.label}</span><b>${inr(x.price)}</b>${x.stock === 0 && html`<small>Out of stock</small>`}</button>`)}</div>`}
     <div className="shop-actions">

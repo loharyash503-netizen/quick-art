@@ -1637,7 +1637,6 @@ h1, h2, h3 { text-wrap: balance; }
 .brand-search .ic { color: var(--ink-3); }
 .brand-search input { flex: 1; min-width: 0; border: 0; outline: none; background: none; font-size: 15px; }
 .brand-search input::-webkit-search-cancel-button { display: none; }
-.seg.origin-seg { grid-template-columns: repeat(3, 1fr); margin: 0 0 12px; }
 .cat-filter { margin-bottom: 4px; }
 .brands-browser.embedded .sec:first-of-type { margin-top: 18px; }
 .brand-list { display: grid; gap: 10px; }
@@ -1831,6 +1830,13 @@ h1, h2, h3 { text-wrap: balance; }
 .pf-out { margin-top: 14px; display: flex; justify-content: center; }
 .pf-out .btn { gap: 8px; }
 .profile .proto-note { margin-top: 6px; }
+
+/* Products without real ratings yet */
+.rating-none { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-3); font-weight: 600; }
+.rating-none .ic { width: 15px; height: 15px; }
+.rv-summary.rv-none { display: block; }
+.rv-none p { display: flex; gap: 8px; align-items: center; font-size: 13.5px; color: var(--ink-2); }
+.rv-none .ic { width: 18px; height: 18px; color: var(--ink-3); flex: none; }
 
 /* ---------- Mobile-only app ----------
    The app always uses its phone layout. On wider screens it sits centred in a phone-sized frame. */
