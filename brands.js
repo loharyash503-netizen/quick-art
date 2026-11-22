@@ -36,23 +36,25 @@ const ORIGIN = { india: 'Indian brand', intl: 'International brand' };
 function BrandLogo({ b, size }) {
   return html`<span className="brand-logo" style=${{ '--h': b.hue, width: size || 52, height: size || 52, fontSize: (size || 52) * 0.34 }} title="Logo placeholder" aria-hidden="true">${b.mono}</span>`;
 }
-function BrandTile({ b }) {
+function BrandTile({ b, live }) {
   const { nav } = useApp();
-  const store = storeProductsOfBrand(b.id);
+  const store = live ? liveProductsOfBrand(b.id) : storeProductsOfBrand(b.id);
   const hero = store.find((p) => p.art.photo);
-  const n = store.length + catalogueOfBrand(b.id).length;
-  return html`<button className="brand-tile" style=${{ '--h': b.hue }} onClick=${() => nav.push('brand', { id: b.id })} aria-label=${`${b.name}, ${n} products`}>
+  const n = store.length + (live ? 0 : catalogueOfBrand(b.id).length);
+  return html`<button className="brand-tile" style=${{ '--h': b.hue }} onClick=${() => nav.push('brand', live ? { id: b.id, live: 1 } : { id: b.id })} aria-label=${`${b.name}, ${n} products`}>
     <span className="brand-pic" aria-hidden="true">${hero ? html`<img src=${asset(hero.art.photo)} alt="" loading="lazy" />` : html`<span className="brand-mono">${b.mono}</span>`}<span className="brand-badge">${b.mono}</span></span>
     <span className="brand-txt"><b>${b.name}</b><small>${n} product${n === 1 ? '' : 's'}</small></span>
   </button>`;
 }
-function BrandRow({ b }) {
+function BrandRow({ b, live }) {
   const { S, nav } = useApp();
-  const cats = brandCats(b.id);
-  const n = storeProductsOfBrand(b.id).length + catalogueOfBrand(b.id).length;
+  const cats = live ? liveCats(b.id) : brandCats(b.id);
+  const n = live ? liveProductsOfBrand(b.id).length : storeProductsOfBrand(b.id).length + catalogueOfBrand(b.id).length;
+  /* In Categories > Brands the row shows one of the brand's own product photos */
+  const hero = live && liveProductsOfBrand(b.id).find((p) => p.art.photo);
   const shops = new Set(S.listings.filter((l) => (l.ref.type === 'cat' ? (CITEM[l.ref.id] || {}).brand : brandIdOf((P[l.ref.id] || {}).brand)) === b.id && listingAvailable(l)).map((l) => l.shopId)).size;
-  return html`<button className="brand-row" onClick=${() => nav.push('brand', { id: b.id })}>
-    <${BrandLogo} b=${b} size=${48} />
+  return html`<button className="brand-row" onClick=${() => nav.push('brand', live ? { id: b.id, live: 1 } : { id: b.id })}>
+    ${hero ? html`<span className="brand-row-pic" aria-hidden="true"><img src=${asset(hero.art.photo)} alt="" loading="lazy" /></span>` : html`<${BrandLogo} b=${b} size=${48} />`}
     <span className="brand-row-txt">
       <b>${b.name} ${b.pro && html`<em className="tag-pro">Pro</em>`}</b>
       <small>${cats.slice(0, 3).map((c) => CCAT[c].short).join(' · ')}</small>
@@ -63,35 +65,41 @@ function BrandRow({ b }) {
 }
 
 /* ---------- Brand directory ---------- */
+/* Categories of a brand's real products */
+function liveCats(id) { return [...new Set(liveProductsOfBrand(id).map((p) => p.ccat || STORE_TO_CCAT[p.cat]).filter(Boolean))]; }
 function BrandsBrowser({ embedded }) {
   const { nav } = useApp();
   const [q, setQ] = useState('');
   const [cat, setCat] = useState(null);
+  const live = !!embedded;
+  const pool = live ? BRANDS_CAT.filter((b) => LIVE_BRANDS.includes(b.id)) : BRANDS_CAT;
+  const catsOf = (id) => (live ? liveCats(id) : brandCats(id));
+  const chips = live ? CCATS.filter((c) => pool.some((b) => catsOf(b.id).includes(c.id))) : CCATS;
   const filtering = q.trim() || cat;
-  const list = BRANDS_CAT
+  const list = pool
     .filter((b) => !q.trim() || b.name.toLowerCase().includes(q.trim().toLowerCase()))
-    .filter((b) => !cat || brandCats(b.id).includes(cat))
+    .filter((b) => !cat || catsOf(b.id).includes(cat))
     .sort((a, b) => a.name.localeCompare(b.name));
   return html`<div className=${'brands-browser' + (embedded ? ' embedded' : '')}>
     <div className="pad-x">
-      <label className="brand-search">${I('search')}<input id="brand-q" type="search" value=${q} onChange=${(e) => setQ(e.target.value)} placeholder=${`Search ${BRANDS_CAT.length} brands`} aria-label="Search brands" autoComplete="off" />${q && html`<button className="clear-x" aria-label="Clear" onClick=${() => setQ('')}>${I('x')}</button>`}</label>
+      <label className="brand-search">${I('search')}<input id="brand-q" type="search" value=${q} onChange=${(e) => setQ(e.target.value)} placeholder=${`Search ${pool.length} brands`} aria-label="Search brands" autoComplete="off" />${q && html`<button className="clear-x" aria-label="Clear" onClick=${() => setQ('')}>${I('x')}</button>`}</label>
     </div>
     <div className="chips scroll-x cat-filter" role="group" aria-label="Filter by category">
       <button className=${'chip' + (!cat ? ' on' : '')} aria-pressed=${!cat} onClick=${() => setCat(null)}>All categories</button>
-      ${CCATS.map((c) => html`<button key=${c.id} className=${'chip' + (cat === c.id ? ' on' : '')} aria-pressed=${cat === c.id} onClick=${() => setCat(cat === c.id ? null : c.id)}>${c.short}</button>`)}
+      ${chips.map((c) => html`<button key=${c.id} className=${'chip' + (cat === c.id ? ' on' : '')} aria-pressed=${cat === c.id} onClick=${() => setCat(cat === c.id ? null : c.id)}>${c.short}</button>`)}
     </div>
     ${!filtering && html`
       <section className="sec">
         <${SecHead} title="Popular brands" sub="Everyday names for school, college and studio" />
-        <div className="rail brands">${BRANDS_CAT.filter((b) => b.pop).map((b) => html`<${BrandTile} key=${b.id} b=${b} />`)}</div>
+        <div className="rail brands">${pool.filter((b) => b.pop).map((b) => html`<${BrandTile} key=${b.id} b=${b} live=${live} />`)}</div>
       </section>
       <section className="sec">
         <${SecHead} title="Professional & specialist" sub="Artist-grade paints, papers, markers and tools" />
-        <div className="rail brands">${BRANDS_CAT.filter((b) => b.pro).map((b) => html`<${BrandTile} key=${b.id} b=${b} />`)}</div>
+        <div className="rail brands">${pool.filter((b) => b.pro).map((b) => html`<${BrandTile} key=${b.id} b=${b} live=${live} />`)}</div>
       </section>`}
     <section className="sec pad-x">
       <h2 className="h-s">${filtering ? `${list.length} brand${list.length === 1 ? '' : 's'}` : `All brands A–Z (${list.length})`}</h2>
-      ${list.length ? html`<div className="brand-list">${list.map((b) => html`<${BrandRow} key=${b.id} b=${b} />`)}</div>`
+      ${list.length ? html`<div className="brand-list">${list.map((b) => html`<${BrandRow} key=${b.id} b=${b} live=${live} />`)}</div>`
         : html`<${Empty} icon="search" title="No brands match" text="Try another name or clear the filters." />`}
     </section>
     <div className="spacer"></div>
@@ -205,12 +213,13 @@ function BrandDetail({ params }) {
   const b = BRAND_CAT[params.id];
   const [cat, setCat] = useState(null);
   if (!b) return html`<div className="screen-col"><${TopBar} title="Brand" /><${Empty} icon="search" title="Brand not found" /></div>`;
-  const cats = brandCats(b.id);
-  const store = storeProductsOfBrand(b.id);
+  const live = !!params.live;
+  const cats = live ? liveCats(b.id) : brandCats(b.id);
+  const store = live ? liveProductsOfBrand(b.id) : storeProductsOfBrand(b.id);
   const items = catalogueOfBrand(b.id).filter((c) => !cat || c.cat === cat);
   const shopItems = S.listings.filter((l) => listingAvailable(l) && (l.ref.type === 'cat' ? (CITEM[l.ref.id] || {}).brand === b.id : brandIdOf((P[l.ref.id] || {}).brand) === b.id));
   const shops = S.shops.map((s) => ({ s, n: shopItems.filter((l) => l.shopId === s.id).length })).filter((x) => x.n);
-  const storeShown = store.filter((p) => !cat || STORE_TO_CCAT[p.cat] === cat);
+  const storeShown = store.filter((p) => !cat || (p.ccat || STORE_TO_CCAT[p.cat]) === cat);
   return html`<div className="screen-col">
     <${TopBar} title=${b.name} sub=${ORIGIN[b.origin]} right=${html`<${CartBtn} />`} />
     <div className="stack-body">
@@ -228,19 +237,19 @@ function BrandDetail({ params }) {
         ${cats.map((c) => html`<button key=${c} className=${'chip' + (cat === c ? ' on' : '')} aria-pressed=${cat === c} onClick=${() => setCat(cat === c ? null : c)}>${CCAT[c].short}</button>`)}
       </div>
       ${storeShown.length > 0 && html`<section className="sec">
-        <${SecHead} title="Available now" sub=${storeShown.every((p) => INDIA_MRP.has(p.id)) ? 'Priced at Indian MRP, ready to order' : 'Sample Quick Art store products, ready to order'} />
+        <${SecHead} title="Available now" sub=${live ? 'Real prices from Indian stores, with the source on each product' : storeShown.every((p) => INDIA_MRP.has(p.id)) ? 'Priced at Indian MRP, ready to order' : 'Sample Quick Art store products, ready to order'} />
         <div className="grid2">${storeShown.map((p) => html`<${ProductCard} key=${p.id} p=${p} wide />`)}</div>
       </section>`}
-      ${(items.length > 0 || store.length === 0) && html`<section className="sec pad-x">
+      ${!live && (items.length > 0 || store.length === 0) && html`<section className="sec pad-x">
         <h2 className="h-s">${b.name} catalogue <small className="count">${items.length}</small></h2>
         ${items.length ? html`<div className="cat-list">${items.map((c) => html`<${CatalogueCard} key=${c.id} c=${c} />`)}</div>`
           : html`<p className="muted">No catalogue entries in this category yet.</p>`}
       </section>`}
-      <section className="sec pad-x">
+      ${!live && html`<section className="sec pad-x">
         <h2 className="h-s">Nearby shops with ${b.name}</h2>
         ${shops.length ? html`<div className="shop-list">${shops.map(({ s, n }) => html`<div key=${s.id} className="shop-row card">${I('store')}<div><b>${s.name}</b><small>${s.area}</small><small>${n} ${b.name} product${n === 1 ? '' : 's'} in stock${s.delivery ? ` · delivery about ${s.eta} min` : ''}${s.pickup ? ' · pickup' : ''}</small></div></div>`)}</div>`
           : html`<div className="offers-empty"><p>${I('info')} No local shop has listed ${b.name} stock yet.</p></div>`}
-      </section>
+      </section>`}
       <div className="spacer"></div>
     </div>
   </div>`;

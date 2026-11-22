@@ -969,6 +969,7 @@ function PDP({ params }) {
         <h1 className="pdp-title">${p.name}</h1>
         <div className="pdp-price"><${Price} v=${v} big />${pct >= 5 && html`<span className="save">Save ${inr(v.mrp - v.price)}</span>`}</div>
         <p className="tax">Inclusive of all taxes</p>
+        ${v.src && html`<p className="price-src">${I('receipt')} <span>Price from <a href=${v.src.url} target="_blank" rel="noopener">${v.src.store}</a>, checked ${PRICE_CHECKED}${p.brandPage ? html` · <a href=${p.brandPage} target="_blank" rel="noopener">Photo: ${p.brand}</a>` : ''}</span></p>`}
         ${p.reviews ? html`<button className="rating rating-link" onClick=${() => { const el = document.getElementById('reviews-' + p.id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>${I('star', { fill: true, cls: 'star' })} <b>${p.rating}</b> <span>(${p.reviews.toLocaleString('en-IN')} reviews)</span> ${I('chevd')}</button>` : html`<span className="rating rating-none">${I('star')} No ratings yet</span>`}
 
         ${p.variants.length > 1 && html`<div className="variants">
@@ -1009,7 +1010,6 @@ function PDP({ params }) {
           <span className="reel-thumb-art" dangerouslySetInnerHTML=${{ __html: sceneSvg(r.scene) }}></span><span className="reel-thumb-play" aria-hidden="true">${I('play')}</span><span className="reel-thumb-cap">${r.title}</span>
         </button>`)}</div>
       </section>`}
-      <div className="pad-x"><${ShopOffers} type="prod" id=${p.id} name=${p.name} title="Also at local shops" /></div>
       <${Reviews} p=${p} />
       <section className="sec">
         <${SecHead} title="Pairs well with" />
