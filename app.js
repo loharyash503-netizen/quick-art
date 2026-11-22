@@ -664,8 +664,8 @@ function Home() {
     </section>
 
     <section className="sec">
-      <${SecHead} title="Professional art brands" sub="Artist-grade paints, papers and markers" action="See all" onAction=${() => nav.push('brands')} />
-      <div className="rail brands">${BRANDS_CAT.filter((b) => b.pro).map((b) => html`<${BrandTile} key=${b.id} b=${b} />`)}</div>
+      <${SecHead} title="Top art brands" sub="Real products with prices from Indian stores" action="See all" onAction=${() => nav.tab('categories', 'brands')} />
+      <div className="rail brands">${LIVE_BRANDS.map((id) => BRAND_CAT[id]).filter(Boolean).map((b) => html`<${BrandTile} key=${b.id} b=${b} live />`)}</div>
     </section>
 
     <section className="sec">
